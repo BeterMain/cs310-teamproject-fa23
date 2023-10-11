@@ -23,7 +23,7 @@ public class Main {
         // output should be "Test Badge: #31A25435 (Munday, Paul J)"
         
         System.err.println("Test Badge: " + b.toString());
-
+        
     }
 
 }
