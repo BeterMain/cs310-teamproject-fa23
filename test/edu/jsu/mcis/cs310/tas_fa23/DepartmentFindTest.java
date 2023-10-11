@@ -60,5 +60,25 @@ public class DepartmentFindTest {
         assertEquals("#8 (Shipping), Terminal ID: 107", d3.toString());
 
     }
+    
+    @Test
+    public void testFindMaintenance()
+    {
+        
+        DepartmentDAO departmentDAO = daoFactory.getDepartmentDAO();
+        
+        Department Maintenance = departmentDAO.find(10);
+        
+        assertEquals("#10 (Maintenance), Terminal ID: 104", Maintenance.toString());
+    }
 
+    @Test
+    public void testFindPress()
+    {
+        DepartmentDAO departmentDAO = daoFactory.getDepartmentDAO();
+        
+        Department Press = departmentDAO.find(7);
+        
+        assertEquals("#7 (Press), Terminal ID: 104", Press.toString());
+    }
 }
