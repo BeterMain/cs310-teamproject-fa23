@@ -81,4 +81,36 @@ public class EmployeeFindTest {
 
     }
     
+    @Test
+    public void testFindEmployee5() {
+        
+        EmployeeDAO employeeDAO = daoFactory.getEmployeeDAO();
+
+        /* Retrieve Employee from Database (by ID) */
+
+        Employee e3 = employeeDAO.find(1);
+
+        /* Compare to Expected Values */
+        
+        assertEquals("ID #1: Chapell, George R (#021890C0), Type: Temporary / Part-Time, Department: Assembly, Active: 04/02/2016", e3.toString());
+
+    }
+    
+    @Test
+    public void testFindEmployee6() {
+        
+        EmployeeDAO employeeDAO = daoFactory.getEmployeeDAO();
+        BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
+
+        /* Retrieve Employee from Database (by badge) */
+
+        Badge b = badgeDAO.find("31A25435");
+        Employee e4 = employeeDAO.find(b);
+
+        /* Compare to Expected Values */
+        
+        assertEquals("ID #24: Munday, Paul J (#31A25435), Type: Temporary / Part-Time, Department: Grinding, Active: 10/09/2015", e4.toString());
+
+    }
+    
 }
