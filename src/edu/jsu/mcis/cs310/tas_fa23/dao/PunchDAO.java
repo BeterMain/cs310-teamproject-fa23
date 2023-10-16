@@ -107,7 +107,7 @@ public class PunchDAO {
 
     }
     
-    public ArrayList list(Badge badge, LocalDate day) { // TODO: Sort the result array by most recent timestamp
+    public ArrayList list(Badge badge, LocalDate day) {
         
         ArrayList<Punch> result = new ArrayList<>();
         LocalDate secondDay = day.plusDays(1);
