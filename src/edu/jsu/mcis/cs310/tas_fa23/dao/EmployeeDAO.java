@@ -10,7 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.util.HashMap;
 
 public class EmployeeDAO {
     
@@ -84,7 +84,17 @@ public class EmployeeDAO {
                         }
                         
                         // Set the return variable
-                        employee = new Employee(id, firstName, middleName, lastName, active, badge, department, shift, employeeType);
+                        HashMap<String, Object> parameterMap = new HashMap<>();
+                        parameterMap.put("id", id);
+                        parameterMap.put("firstName", firstName);
+                        parameterMap.put("middleName", middleName);
+                        parameterMap.put("lastName", lastName);
+                        parameterMap.put("active", active);
+                        parameterMap.put("badge", badge);
+                        parameterMap.put("department", department);
+                        parameterMap.put("shift", shift);
+                        parameterMap.put("employeeType", employeeType);
+                        employee = new Employee(parameterMap);
                     }
 
                 }
