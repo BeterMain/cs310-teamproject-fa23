@@ -1,7 +1,8 @@
 package edu.jsu.mcis.cs310.tas_fa23;
-
+import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.DayOfWeek;
 
 public class Punch {
     
@@ -75,6 +76,45 @@ public class Punch {
     
     /* Output State in Srting Form */
 
+    
+    public void adjust(Shift s){
+        LocalDateTime ot = originalTimeStamp;
+        Boolean Weekend = false;
+        DayOfWeek day = ot.getDayOfWeek();
+        
+        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY){
+            Weekend = true;
+        }
+        Integer dock = s.getDockPenalty();
+        Integer Interval = s.getRoundInterval();
+        Integer grace = s.getGracePeriod();
+        
+        LocalTime sStart = s.getShiftStart();
+        LocalTime lStart = s.getLunchStart();
+        LocalTime sStop = s.getShiftStop();
+        LocalTime lStop = s.getLunchStop();
+        
+        LocalDateTime shiftStart = ot.withHour(sStart.getHour()).withMinute(sStart.getMinute());
+        shiftStart = shiftStart.withSecond(0);
+        
+        LocalDateTime shiftStop = ot.withHour(sStop.getHour()).withMinute(sStop.getMinute());
+        shiftStop = shiftStop.withSecond(0);
+        
+        LocalDateTime lunchStart = ot.withHour(lStart.getHour()).withMinute(lStart.getMinute());
+        lunchStart = lunchStart.withSecond(0);
+        
+        LocalDateTime lunchStop = ot.withHour(lStop.getHour()).withMinute(lStop.getMinute());
+        lunchStop = lunchStop.withSecond(0);
+        
+        LocalDateTime shiftStartInterval = shiftStart.minusMinutes(Interval);
+        LocalDateTime shiftStartGrace = shiftStart.plusMinutes(grace);
+        LocalDateTime shiftStartDock = shiftStart.plusMinutes(dock);
+        
+        LocalDateTime shiftStopInterval = shiftStop.minusMinutes(Interval);
+        LocalDateTime shiftStopGrace = shiftStop.plusMinutes(grace);
+        LocalDateTime shiftStopDock = shiftStop.plusMinutes(dock);
+    
+    } 
     /**
      * Returns a string in the format of "#(badgeid) (event type): (DAY mm/dd/yyyy) (HH:MM:SS)"
      * @return a String representation of the class
