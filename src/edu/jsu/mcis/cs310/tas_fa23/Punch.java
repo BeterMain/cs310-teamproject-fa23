@@ -108,7 +108,6 @@ public class Punch {
         LocalTime lStart = s.getLunchStart();
         LocalTime sStop = s.getShiftStop();
         LocalTime lStop = s.getLunchStop();
-        int lunchLength = lStop.getMinute() - lStart.getMinute();
         
         /* Main Logic */
         
@@ -171,7 +170,7 @@ public class Punch {
             // (Else) If it is "Clock Out" then procede
             else {
                 // (If) If the punch time is within the lunch break
-                if (punchTime.isAfter(lStart) && punchTime.isBefore(lStop)) { // TODO: Fix lunch (look at testAdjustPunchsShift1Weekday)
+                if (punchTime.isAfter(lStart) && punchTime.isBefore(lStop)) {
                     // Assign adjustment variable to "Lunch Stop" 
                     if (punchTime.getMinute() - lStart.getMinute() < lStop.getMinute() - punchTime.getMinute()) {
                         adjustmentType = PunchAdjustmentType.LUNCH_START;
@@ -205,7 +204,7 @@ public class Punch {
                     adjustmentType = PunchAdjustmentType.SHIFT_DOCK;
                 }
                 // (Else if) If the punch time is outside of the dock interval and grace period brefore and after the shift
-                else if (punchTime.isAfter(sStart) && punchTime.getMinute() % interval != 0) { // TODO: Take another look at this
+                else if (punchTime.isAfter(sStart) && punchTime.getMinute() % interval != 0) { // TODO: Fix the math logic
                     // Set the adjustment variable to "Interval Round"
                     adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
                     // Round the time up or down 
@@ -227,7 +226,7 @@ public class Punch {
             }
         }
         
-        // set adjustedTimestamp to the new time (or do this in the nested if statements)
+        // set adjustedTimestamp to the new time
         adjustedTimestamp = LocalDateTime.of(originalTimestamp.toLocalDate(), punchTime);
     
     } 
