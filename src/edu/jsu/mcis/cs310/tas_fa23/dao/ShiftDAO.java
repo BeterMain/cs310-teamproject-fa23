@@ -17,8 +17,6 @@ public class ShiftDAO {
     
     private final DAOFactory daoFactory;
     
-    private LocalTime shiftStart = null, shiftStop = null, lunchStart = null, lunchStop = null;
-    
     private int shiftID = 0;
     
     ShiftDAO(DAOFactory daoFactory)
