@@ -14,7 +14,7 @@ public class Punch {
     private LocalDateTime adjustedTimestamp = null;
     private final EventType punchType;
     private final Badge badge;
-    private PunchAdjustmentType adjustmentType = null;
+    private PunchAdjustmentType adjustmentType = PunchAdjustmentType.NONE;
     
     /* Create Constructors */
     
@@ -112,9 +112,12 @@ public class Punch {
         /* Main Logic */
         
         // (If) If the punch type isn't a time out or if we aren't on a weekend, then we procede (The rest will be an if statement)
-        if (punchType != EventType.TIME_OUT || !weekend) {
+        if (punchType != EventType.TIME_OUT && !weekend) {
             // (If) If the punch type is "Clock In" then procede
             if (punchType == EventType.CLOCK_IN) {
+                // Rule for dock penalty
+                boolean isDock = punchTime.isAfter(sStart) && punchTime.isBefore(sStart.plusMinutes(dock));
+                
                 // (If) If the punch time is within the lunch break
                 if (punchTime.isAfter(lStart) && punchTime.isBefore(lStop)) {
                     // Assign adjustment variable to "Lunch Start" 
@@ -141,29 +144,51 @@ public class Punch {
                     // Assign adjustment variable to "Shift Start" 
                     adjustmentType = PunchAdjustmentType.SHIFT_START;
                 }
-                // (Else if) If the punch time after the "Shift start" is within the Dock period 
-                else if (punchTime.isAfter(sStart) && punchTime.isBefore(sStart.plusMinutes(dock))) {
-                    // Set the punch time to shift start plus the Dock penalty  
-                    punchTime = sStart.plusMinutes(dock);
-                    // Assign adjustment variable to "Shift Dock" 
-                    adjustmentType = PunchAdjustmentType.SHIFT_DOCK;
-                }
+                
                 // (Else if) If the punch time is outside of the dock interval and grace period brefore and after the shift
-                else if (punchTime.isAfter(sStart) && punchTime.getMinute() % interval != 0) { // TODO: Take another look at this
+                else if (punchTime.isAfter(sStart) && punchTime.getMinute() % interval != 0 && !isDock) { 
                     // Set the adjustment variable to "Interval Round"
                     adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
                     // Round the time up or down 
-                    punchTime.plusMinutes(punchTime.getMinute() - interval);
+                    int remainder = punchTime.getMinute() % interval;
+                    if (remainder > interval/2) {
+                        remainder = interval - remainder;
+                        punchTime = punchTime.plusMinutes(remainder);
+                    }
+                    else if (remainder == 7 && punchTime.getSecond() > 60/2) {
+                        remainder = interval - remainder;
+                        punchTime = punchTime.plusMinutes(remainder);
+                    }
+                    else {
+                        punchTime = punchTime.minusMinutes(remainder);
+                    }
+                    punchTime = punchTime.withSecond(0);
+            
                 }
                 // (Else) 
                 else {
                     // If the punch time divided by the round interval is == 0 
-                    if (punchTime.getMinute() % 15 == 0) {
-                        // Set adjustement type to "None" 
-                        adjustmentType = PunchAdjustmentType.NONE;
-                        // Reset seconds to zero 
-                        punchTime = punchTime.withSecond(0);
-                        punchTime = punchTime.withNano(0);
+                    if (punchTime.getMinute() % interval == 0) {
+                        // (if) If the punch time after the "Shift start" is within the Dock period 
+                        if (punchTime.isAfter(sStart) && punchTime.isBefore(sStart.plusMinutes(dock+1))) {
+                            // Set the punch time to shift start plus the Dock penalty  
+                            punchTime = sStart.plusMinutes(dock);
+                            // Assign adjustment variable to "Shift Dock" 
+                            adjustmentType = PunchAdjustmentType.SHIFT_DOCK;
+                        }
+                        else {
+                            // Set adjustement type to "None" 
+                            adjustmentType = PunchAdjustmentType.NONE;
+                            // Reset seconds to zero 
+                            punchTime = punchTime.withSecond(0);
+                            punchTime = punchTime.withNano(0);
+                        }
+                    }
+                    else {
+                        // Set the punch time to shift start plus the Dock penalty  
+                        punchTime = sStart.plusMinutes(dock);
+                        // Assign adjustment variable to "Shift Dock" 
+                        adjustmentType = PunchAdjustmentType.SHIFT_DOCK;
                     }
                 }
             }     
@@ -196,34 +221,74 @@ public class Punch {
                     // Assign adjustment variable to "Shift Stop"
                     adjustmentType = PunchAdjustmentType.SHIFT_STOP;
                 }
-                // (Else if) If the punch time after the "Shift start" is within the Dock period 
-                else if (punchTime.isBefore(sStart) && punchTime.isAfter(sStart.plusMinutes(dock))) {
-                    // Set the punch time to shift stop minus the Dock penalty
-                    punchTime = sStop.minusMinutes(dock);
-                    // Assign adjustment variable to "Shift Dock" 
-                    adjustmentType = PunchAdjustmentType.SHIFT_DOCK;
-                }
+                
                 // (Else if) If the punch time is outside of the dock interval and grace period brefore and after the shift
-                else if (punchTime.isAfter(sStart) && punchTime.getMinute() % interval != 0) { // TODO: Fix the math logic
+                else if (punchTime.isAfter(sStart) && punchTime.getMinute() % interval != 0) {
                     // Set the adjustment variable to "Interval Round"
                     adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
                     // Round the time up or down 
-                    if (punchTime.getMinute() < punchTime.getMinute() - sStop.getMinute()) {
-                        punchTime.plusMinutes(punchTime.getMinute() - interval);
+                    int remainder = punchTime.getMinute() % interval;
+                    if (remainder > interval/2) {
+                        remainder = interval - remainder;
+                        punchTime = punchTime.plusMinutes(remainder);
                     }
+                    else if (remainder == 7 && punchTime.getSecond() > 60/2) {
+                        remainder = interval - remainder;
+                        punchTime = punchTime.plusMinutes(remainder);
+                    }
+                    else {
+                        punchTime = punchTime.minusMinutes(remainder);
+                    }
+                    punchTime = punchTime.withSecond(0);
                 }
                 // (Else)
                 else {
+                    System.out.println();
                     // If the punch time divided by the round interval is == 0 
-                    if (punchTime.getMinute() % 15 == 0) {
-                        // Set adjustement type to "None" 
-                        adjustmentType = PunchAdjustmentType.NONE;
-                        // Reset seconds to zero 
-                        punchTime = punchTime.withSecond(0);
-                        punchTime = punchTime.withNano(0);
+                    if (punchTime.getMinute() % interval == 0) {
+                        // ( if) If the punch time after the "Shift start" is within the Dock period 
+                        if (punchTime.isBefore(sStop) && punchTime.isAfter(sStop.minusMinutes(dock+1))) {
+                            // Set the punch time to shift stop minus the Dock penalty
+                            punchTime = sStop.minusMinutes(dock);
+                            // Assign adjustment variable to "Shift Dock" 
+                            adjustmentType = PunchAdjustmentType.SHIFT_DOCK;
+                        }
+                        else {
+                            // Set adjustement type to "None" 
+                            adjustmentType = PunchAdjustmentType.NONE;
+                            // Reset seconds to zero 
+                            punchTime = punchTime.withSecond(0);
+                            punchTime = punchTime.withNano(0);
+                        }
+                    }
+                    // If the punch time after the "Shift start" is within the Dock period
+                    else {
+                        System.out.println("dock");
+                        // Set the punch time to shift stop minus the Dock penalty
+                        punchTime = sStop.minusMinutes(dock);
+                        // Assign adjustment variable to "Shift Dock" 
+                        adjustmentType = PunchAdjustmentType.SHIFT_DOCK;
                     }
                 }
             }
+        }
+        else {
+            // Set the adjustment variable to "Interval Round"
+            adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
+            // Round the time up or down 
+            int remainder = punchTime.getMinute() % interval;
+            if (remainder > interval/2) {
+                remainder = interval - remainder;
+                punchTime = punchTime.plusMinutes(remainder);
+            }
+            else if (remainder == 7 && punchTime.getSecond() > 60/2) {
+                remainder = interval - remainder;
+                punchTime = punchTime.plusMinutes(remainder);
+            }
+            else {
+                punchTime = punchTime.minusMinutes(remainder);
+            }
+            punchTime = punchTime.withSecond(0);
         }
         
         // set adjustedTimestamp to the new time
