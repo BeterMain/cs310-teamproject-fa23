@@ -1,8 +1,8 @@
 package edu.jsu.mcis.cs310.tas_fa23;
 
-import edu.jsu.mcis.cs310.tas_fa23.dao.ShiftDAOHM;
 import edu.jsu.mcis.cs310.tas_fa23.dao.DAOFactory;
 import edu.jsu.mcis.cs310.tas_fa23.dao.PunchDAO;
+import edu.jsu.mcis.cs310.tas_fa23.dao.ShiftDAO;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -23,9 +23,9 @@ public class PunchAdjustTest {
         /* Get Shift Ruleset and Punch Data */
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
-        ShiftDAOHM shiftDAO = daoFactory.getShiftDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
 
-        ShiftOld s1 = shiftDAO.find(1);
+        Shift s1 = shiftDAO.find(1);
 
         Punch p1 = punchDAO.find(3634);
         Punch p2 = punchDAO.find(3687);
@@ -61,9 +61,9 @@ public class PunchAdjustTest {
         /* Get Shift Ruleset and Punch Data */
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
-        ShiftDAOHM shiftDAO = daoFactory.getShiftDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
 
-        ShiftOld s1 = shiftDAO.find(1);
+        Shift s1 = shiftDAO.find(1);
 
         Punch p1 = punchDAO.find(1087);
         Punch p2 = punchDAO.find(1162);
@@ -89,9 +89,9 @@ public class PunchAdjustTest {
         /* Get Shift Ruleset and Punch Data */
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
-        ShiftDAOHM shiftDAO = daoFactory.getShiftDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
 
-        ShiftOld s2 = shiftDAO.find(2);
+        Shift s2 = shiftDAO.find(2);
 
         Punch p1 = punchDAO.find(4943);
         Punch p2 = punchDAO.find(5004);
@@ -117,9 +117,9 @@ public class PunchAdjustTest {
         /* Get Shift Ruleset and Punch Data */
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
-        ShiftDAOHM shiftDAO = daoFactory.getShiftDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
 
-        ShiftOld s2 = shiftDAO.find(2);
+        Shift s2 = shiftDAO.find(2);
 
         Punch p1 = punchDAO.find(5463);
         Punch p2 = punchDAO.find(5541);
@@ -145,9 +145,9 @@ public class PunchAdjustTest {
         /* Get Shift Ruleset and Punch Data */
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
-        ShiftDAOHM shiftDAO = daoFactory.getShiftDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
 
-        ShiftOld s1 = shiftDAO.find(1);
+        Shift s1 = shiftDAO.find(1);
 
         Punch p1 = punchDAO.find(151);  // Interval Adjustment Before Shift (In)
         Punch p2 = punchDAO.find(2439); // Grace Period (In)

@@ -162,9 +162,8 @@ public class EmployeeDAO {
                         LocalDateTime active = rs.getTimestamp("active").toLocalDateTime();
                         
                         // Create a new Badge object that has the required badge field
-                        StringBuilder s = new StringBuilder(lastName);
-                        s.append(", ").append(firstName).append(" ").append(middleName);
-                        Badge badge = new Badge(rs.getString("badgeid"),s.toString());
+                        BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
+                        Badge badge = badgeDAO.find(rs.getString("badgeid"));
                         
                         // Create a new Department object that has the required department field
                         DepartmentDAO departmentDAO = daoFactory.getDepartmentDAO();
@@ -186,7 +185,17 @@ public class EmployeeDAO {
                         }
                         
                         // Set the return variable
-                        employee = new Employee(rs.getInt("id"), firstName, middleName, lastName, active, badge, department, shift, employeeType);
+                        HashMap<String, Object> parameterMap = new HashMap<>();
+                        parameterMap.put("id", rs.getInt("id"));
+                        parameterMap.put("firstName", firstName);
+                        parameterMap.put("middleName", middleName);
+                        parameterMap.put("lastName", lastName);
+                        parameterMap.put("active", active);
+                        parameterMap.put("badge", badge);
+                        parameterMap.put("department", department);
+                        parameterMap.put("shift", shift);
+                        parameterMap.put("employeeType", employeeType);
+                        employee = new Employee(parameterMap);
                     }
 
                 }
