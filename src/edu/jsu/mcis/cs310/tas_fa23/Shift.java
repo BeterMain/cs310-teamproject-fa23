@@ -1,6 +1,6 @@
 package edu.jsu.mcis.cs310.tas_fa23;
 
-import java.time.LocalTime;
+import java.time.*;
 import java.util.HashMap;
 
 /**
@@ -11,25 +11,27 @@ public class Shift
 {
     LocalTime shiftStart = null, shiftStop = null, lunchStart = null, lunchStop = null;
 
-    int id, roundInterval, gracePeriod, dockPenalty, lunchThreshold;
-    String description;
-    int shiftLength, lunchLength;
-    boolean Bool = false;
+    private int id, roundInterval, gracePeriod, dockPenalty, lunchThreshold;
+    private String description;
+    private int shiftLength, lunchLength;
+    private boolean Bool = false;
     
-    HashMap<String, String> shiftMap = null;
-    
-    public Shift(int id, String description, LocalTime shiftStart, LocalTime shiftStop, int roundInterval, int gracePeriod, int dockPenalty, LocalTime lunchStart, LocalTime lunchStop, int lunchThreshold)
+    public Shift(HashMap<String,Object> shiftMap)
     {
-        this.id = id;
-        this.description = description;
-        this.shiftStart = shiftStart;
-        this.shiftStop = shiftStop;
-        this.roundInterval = roundInterval;
-        this.gracePeriod = gracePeriod;
-        this.dockPenalty = dockPenalty;
-        this.lunchStart = lunchStart;
-        this.lunchStop = lunchStop;
-        this.lunchThreshold = lunchThreshold;
+        this.id = (int) shiftMap.get("id");
+        this.description = (String) shiftMap.get("description");
+        java.sql.Time shiftStartTime = (java.sql.Time) shiftMap.get("shiftstart");
+        this.shiftStart = shiftStartTime.toLocalTime();
+        java.sql.Time time = (java.sql.Time) shiftMap.get("shiftstop");
+        this.shiftStop = time.toLocalTime();
+        this.roundInterval = (int) shiftMap.get("roundinterval");
+        this.gracePeriod = (int) shiftMap.get("graceperiod");
+        this.dockPenalty = (int) shiftMap.get("dockpenalty");
+        java.sql.Time lunchStartTime = (java.sql.Time) shiftMap.get("lunchstart");
+        this.lunchStart = lunchStartTime.toLocalTime();
+        java.sql.Time lunchStopTime = (java.sql.Time) shiftMap.get("lunchstop");
+        this.lunchStop = lunchStopTime.toLocalTime();
+        this.lunchThreshold = (int) shiftMap.get("lunchthreshold");
     }
     
     public int getID()
@@ -82,6 +84,7 @@ public class Shift
         return lunchThreshold;
     }
     
+    @Override
     public String toString()
     {
         StringBuilder s = new StringBuilder();

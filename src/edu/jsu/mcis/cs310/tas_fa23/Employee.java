@@ -3,6 +3,7 @@ package edu.jsu.mcis.cs310.tas_fa23;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 
 public class Employee {
     
@@ -18,16 +19,16 @@ public class Employee {
     
     /* Create Constructor */
     
-    public Employee(int id, String firstName, String middleName, String lastName, LocalDateTime active, Badge badge, Department department, Shift shift, EmployeeType employeeType) {
-        this.id = id;
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.active = active;
-        this.badge = badge;
-        this.department = department;
-        this.shift = shift;
-        this.employeeType = employeeType;
+    public Employee(HashMap<String, Object> parameterMap) {
+        this.id = (int) parameterMap.get("id");
+        this.firstName = (String) parameterMap.get("firstName");
+        this.middleName = (String) parameterMap.get("middleName");
+        this.lastName = (String) parameterMap.get("lastName");
+        this.active = (LocalDateTime) parameterMap.get("active");
+        this.badge = (Badge) parameterMap.get("badge");
+        this.department = (Department) parameterMap.get("department");
+        this.shift = (Shift) parameterMap.get("shift");
+        this.employeeType = (EmployeeType) parameterMap.get("employeeType");
     }
     
     /* Create Getters */ 

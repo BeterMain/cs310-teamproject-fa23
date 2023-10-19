@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 
 public class EmployeeDAO {
     
@@ -68,9 +69,8 @@ public class EmployeeDAO {
                         DepartmentDAO departmentDAO = daoFactory.getDepartmentDAO();
                         Department department = departmentDAO.find(rs.getInt("departmentid"));
                         
-                        /* TODO: Create a new Shift object that will be used in the shift field */
-                        // TODO: Create a ShiftDAO object from the DAOFactory and use the shiftId in the database to find the correct object 
-                        Shift shift = new Shift();
+                        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
+                        Shift shift = shiftDAO.find(id);
                         
                         // Create a EmployeeType object and assign the correct description
                         EmployeeType employeeType = null;
@@ -84,7 +84,17 @@ public class EmployeeDAO {
                         }
                         
                         // Set the return variable
-                        employee = new Employee(id, firstName, middleName, lastName, active, badge, department, shift, employeeType);
+                        HashMap<String, Object> parameterMap = new HashMap<>();
+                        parameterMap.put("id", id);
+                        parameterMap.put("firstName", firstName);
+                        parameterMap.put("middleName", middleName);
+                        parameterMap.put("lastName", lastName);
+                        parameterMap.put("active", active);
+                        parameterMap.put("badge", badge);
+                        parameterMap.put("department", department);
+                        parameterMap.put("shift", shift);
+                        parameterMap.put("employeeType", employeeType);
+                        employee = new Employee(parameterMap);
                     }
 
                 }
@@ -160,9 +170,9 @@ public class EmployeeDAO {
                         DepartmentDAO departmentDAO = daoFactory.getDepartmentDAO();
                         Department department = departmentDAO.find(rs.getInt("departmentid"));
                         
-                        /* TODO: Create a new Shift object that will be used in the shift field */
-                        // TODO: Create a ShiftDAO object from the DAOFactory and use the shiftId in the database to find the correct object 
-                        Shift shift = new Shift();
+                        // Add Shift Object
+                        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
+                        Shift shift = shiftDAO.find(b);
                         
                         // Create a EmployeeType object and assign the correct description
                         EmployeeType employeeType = null;
