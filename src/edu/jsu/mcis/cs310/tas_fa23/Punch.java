@@ -9,7 +9,7 @@ public class Punch {
     /* Initialize Vars */
     
     private final int terminalId;
-    private int id;
+    private Integer id = null;
     private LocalDateTime originalTimestamp = null;
     private LocalDateTime adjustedTimestamp = null;
     private final EventType punchType;
@@ -22,6 +22,7 @@ public class Punch {
         this.terminalId = terminalid;
         this.badge = badge;
         this.punchType = punchType;
+        this.originalTimestamp = LocalDateTime.now();
     }
     
     public Punch(int id, int terminalId, Badge badge, LocalDateTime originalTimestamp, EventType punchType) {
@@ -191,8 +192,10 @@ public class Punch {
                         adjustmentType = PunchAdjustmentType.SHIFT_DOCK;
                     }
                 }
-            }     
-            // (Else) If it is "Clock Out" then procede
+            }
+            
+            
+            /* (Else) If it is "Clock Out" then procede */
             else {
                 // (If) If the punch time is within the lunch break
                 if (punchTime.isAfter(lStart) && punchTime.isBefore(lStop)) {
@@ -226,24 +229,26 @@ public class Punch {
                 else if (punchTime.isAfter(sStart) && punchTime.getMinute() % interval != 0) {
                     // Set the adjustment variable to "Interval Round"
                     adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
-                    // Round the time up or down 
+                    // Round the time up 
                     int remainder = punchTime.getMinute() % interval;
                     if (remainder > interval/2) {
                         remainder = interval - remainder;
                         punchTime = punchTime.plusMinutes(remainder);
                     }
+                    // Find the middle of the interval and round the time up if above
                     else if (remainder == 7 && punchTime.getSecond() > 60/2) {
                         remainder = interval - remainder;
                         punchTime = punchTime.plusMinutes(remainder);
                     }
+                    // Round the time down
                     else {
                         punchTime = punchTime.minusMinutes(remainder);
                     }
+                    // Reset seconds to zero
                     punchTime = punchTime.withSecond(0);
                 }
                 // (Else)
                 else {
-                    System.out.println();
                     // If the punch time divided by the round interval is == 0 
                     if (punchTime.getMinute() % interval == 0) {
                         // ( if) If the punch time after the "Shift start" is within the Dock period 
@@ -263,7 +268,6 @@ public class Punch {
                     }
                     // If the punch time after the "Shift start" is within the Dock period
                     else {
-                        System.out.println("dock");
                         // Set the punch time to shift stop minus the Dock penalty
                         punchTime = sStop.minusMinutes(dock);
                         // Assign adjustment variable to "Shift Dock" 
@@ -275,19 +279,22 @@ public class Punch {
         else {
             // Set the adjustment variable to "Interval Round"
             adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
-            // Round the time up or down 
+            // Round the time up 
             int remainder = punchTime.getMinute() % interval;
             if (remainder > interval/2) {
                 remainder = interval - remainder;
                 punchTime = punchTime.plusMinutes(remainder);
             }
+            // Find the middle of the interval and round the time up if above
             else if (remainder == 7 && punchTime.getSecond() > 60/2) {
                 remainder = interval - remainder;
                 punchTime = punchTime.plusMinutes(remainder);
             }
+            // Round the time down
             else {
                 punchTime = punchTime.minusMinutes(remainder);
             }
+            // Reset seconds to zero
             punchTime = punchTime.withSecond(0);
         }
         
