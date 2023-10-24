@@ -93,7 +93,7 @@ public class JSONTest {
             String actualJSON = DAOUtility.getPunchListAsJSON(dailypunchlist);
 
             ArrayList<HashMap<String, String>> actual = (ArrayList) Jsoner.deserialize(actualJSON);
-            System.out.println(actual.equals(expected));
+            
             /* Compare to Expected JSON */
             assertEquals(expected, actual);
 

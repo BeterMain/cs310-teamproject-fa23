@@ -37,6 +37,10 @@ public class Employee {
         return this.id;
     }
     
+    public Badge getBadge() {
+        return this.badge;
+    }
+    
     public String getFirstName() {
         return this.firstName;
     }
