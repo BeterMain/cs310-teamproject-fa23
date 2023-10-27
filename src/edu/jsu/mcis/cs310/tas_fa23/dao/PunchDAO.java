@@ -22,12 +22,6 @@ public class PunchDAO {
 
     }
 
-    /**
-     *  Searches through the "event" database table, looking for the integer "id"
-     * @param id First column in database
-     * @return Punch object
-     */
-    
     public int create(Punch punch){
         
         int Result = 0;
@@ -38,7 +32,7 @@ public class PunchDAO {
         
         String badgeId = punch.getBadge().getId();
         
-        LocalDateTime timestamp = punch.getOriginaltimestamp();
+        Timestamp timestamp = java.sql.Timestamp.valueOf(punch.getOriginaltimestamp());
         
         try{
         
@@ -55,7 +49,7 @@ public class PunchDAO {
             
             ps.setInt(3, punch.getPunchType().ordinal());
             
-            ps.setObject(4, timestamp);
+            ps.setTimestamp(4, timestamp);
             
             int affectedRows = ps.executeUpdate();
             
@@ -102,7 +96,13 @@ public class PunchDAO {
             }
         } return Result;
     }   
-            
+    
+    /**
+     *  Searches through the "event" database table, looking for the integer "id"
+     * @param id First column in database
+     * @return Punch object
+     */
+    
     public Punch find(int id) {
 
         Punch punch = null;
