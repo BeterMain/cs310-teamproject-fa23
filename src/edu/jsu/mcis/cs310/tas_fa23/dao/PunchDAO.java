@@ -7,10 +7,12 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class PunchDAO {
     private static final String QUERY_FIND = "SELECT * FROM event WHERE id = ?";
     private static final String QUERY_LIST = "SELECT * FROM event WHERE badgeid = ? AND DATE(timestamp) = ? ORDER BY timestamp";
+    private static final String QUERY_RANGE_LIST = "SELECT * FROM event WHERE badgeid = ? AND DATE(timestamp) between ? AND ? ORDER BY timestamp";
     private static final String QUERY_CREATE = "INSERT INTO event (badgeid, terminalid, eventtypeid, timestamp) VALUES (?,?,?,?) ";
     private final DAOFactory daoFactory;
 
@@ -323,4 +325,79 @@ public class PunchDAO {
         
         return result;
     }
+    
+    /* Create List Method Searching in a Range of Dates */
+    
+    public ArrayList<Punch> list(Badge badge, LocalDate begin, LocalDate end) {
+        
+        ArrayList<Punch> result = new ArrayList<>();
+        boolean hasResults;
+        
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        
+        try {
+            
+            Connection conn = daoFactory.getConnection();
+            
+            if (conn.isValid(0)) {
+                // Use prepared statement to search for a match between dates and a badge id
+                ps = conn.prepareStatement(QUERY_RANGE_LIST);
+                
+                ps.setString(1, badge.getId());
+                ps.setString(2, begin.toString());
+                ps.setString(3, end.toString());
+                
+                // Execute 
+                hasResults = ps.execute();
+                
+                // Check if results
+                if (hasResults) {
+                    
+                    /* Iterate through dates */
+                    
+                    rs = ps.getResultSet();
+                    LocalDate start;
+                    if (rs.next()) {
+                        start = rs.getTimestamp("timestamp").toLocalDateTime().toLocalDate();
+                    }
+                    else {
+                        start = begin;
+                    }
+                    
+                    Iterator iterator = start.datesUntil(end.plusDays(1)).iterator();
+                    
+                    /* Use list() to add punch objects to result */
+                    
+                    while (iterator.hasNext()) {
+                        result.addAll(list(badge, (LocalDate) iterator.next()));
+                    }
+                        
+                }
+                    
+            }
+                
+            /* If no data available, print an error */
+
+            else {
+
+                System.err.println("ERROR: No data returned!");
+
+            }
+        }      
+            
+        
+        catch (Exception e) { e.printStackTrace(); }
+        
+        finally {
+            
+            if (rs != null) { try { rs.close(); } catch (Exception e) { e.printStackTrace(); } }
+            if (ps != null) { try { ps.close(); } catch (Exception e) { e.printStackTrace(); } }
+            
+        }
+        
+        return result;
+        
+    }
+    
 }

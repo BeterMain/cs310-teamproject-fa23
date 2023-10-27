@@ -3,6 +3,7 @@ package edu.jsu.mcis.cs310.tas_fa23;
 import edu.jsu.mcis.cs310.tas_fa23.dao.BadgeDAO;
 import edu.jsu.mcis.cs310.tas_fa23.dao.DAOFactory;
 import edu.jsu.mcis.cs310.tas_fa23.dao.EmployeeDAO;
+import edu.jsu.mcis.cs310.tas_fa23.dao.PunchDAO;
 import java.time.*;
 import java.util.*;
 import java.time.temporal.ChronoUnit;
@@ -25,11 +26,6 @@ public class Main {
         
         System.err.println("Test Badge: " + b.toString());
         
-        EmployeeDAO employeeDAO = daoFactory.getEmployeeDAO();
-        Badge b2 = badgeDAO.find("021890C0");
-        
-        Employee employee = employeeDAO.find(b2);
-        System.out.println(employee.toString());
-            }
+    }
             
-        }
+}
