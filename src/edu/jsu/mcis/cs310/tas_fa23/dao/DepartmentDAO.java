@@ -51,7 +51,6 @@ public class DepartmentDAO {
                         
                         department = new Department(id, description, terminalID);
                     }
-                    
                 }
             }
         }            

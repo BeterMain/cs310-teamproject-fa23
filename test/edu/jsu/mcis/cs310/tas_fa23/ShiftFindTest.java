@@ -59,7 +59,46 @@ public class ShiftFindTest {
         assertEquals("Shift 1: 07:00 - 15:30 (510 minutes); Lunch: 12:00 - 12:30 (30 minutes)", s1.toString());
         assertEquals("Shift 2: 12:00 - 20:30 (510 minutes); Lunch: 16:30 - 17:00 (30 minutes)", s2.toString());
         assertEquals("Shift 1 Early Lunch: 07:00 - 15:30 (510 minutes); Lunch: 11:30 - 12:00 (30 minutes)", s3.toString());
-
     }
 
+    @Test
+    public void findShiftByID2()
+    {
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
+        
+        Shift shift1 = shiftDAO.find(4);
+        
+        assertEquals("Shift 3: 22:30 - 07:00 (510 minutes); Lunch: 02:30 - 03:00 (30 minutes)", shift1.toString());
+    }
+    
+    @Test 
+    public void findShiftByBadgeID2()
+    {
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
+        BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
+        
+        Badge badge1 = badgeDAO.find("0FFA272B");
+        
+        Shift shift = shiftDAO.find(badge1);
+        
+        assertEquals("Shift 1: 07:00 - 15:30 (510 minutes); Lunch: 12:00 - 12:30 (30 minutes)", shift.toString());
+    }
+    
+    @Test
+    public void findShiftByIDAndBadgeID()
+    {
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
+        BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
+        
+        Shift shift1 = shiftDAO.find(2);
+        Shift shift4 = shiftDAO.find(3);
+        
+        Badge badge1 = badgeDAO.find("CB99D1E8");
+        
+        Shift shift2 = shiftDAO.find(badge1);
+        
+        assertEquals("Shift 2: 12:00 - 20:30 (510 minutes); Lunch: 16:30 - 17:00 (30 minutes)", shift1.toString());
+        assertEquals("Shift 1: 07:00 - 15:30 (510 minutes); Lunch: 12:00 - 12:30 (30 minutes)", shift2.toString());
+        assertEquals("Shift 1 Early Lunch: 07:00 - 15:30 (510 minutes); Lunch: 11:30 - 12:00 (30 minutes)", shift4.toString());
+    }
 }

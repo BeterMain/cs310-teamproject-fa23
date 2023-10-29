@@ -1,6 +1,6 @@
 package edu.jsu.mcis.cs310.tas_fa23;
 
-import edu.jsu.mcis.cs310.tas_fa23.dao.ShiftDAOHM;
+import edu.jsu.mcis.cs310.tas_fa23.dao.ShiftDAO;
 import edu.jsu.mcis.cs310.tas_fa23.dao.DAOFactory;
 import edu.jsu.mcis.cs310.tas_fa23.dao.PunchDAO;
 import edu.jsu.mcis.cs310.tas_fa23.dao.DAOUtility;
@@ -23,13 +23,13 @@ public class TimeAccruedTest {
     public void testMinutesAccruedShift1Weekday() {
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
-        ShiftDAOHM shiftDAO = daoFactory.getShiftDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
 
         /* Get Punch/Badge/Shift Objects */
 
         Punch p = punchDAO.find(3634);
         Badge b = p.getBadge();
-        ShiftOld s = shiftDAO.find(b);
+        Shift s = shiftDAO.find(b);
         
         /* Get/Adjust Punch List */
 
@@ -53,13 +53,13 @@ public class TimeAccruedTest {
     public void testMinutesAccruedShift1WeekdayWithTimeout() {
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
-        ShiftDAOHM shiftDAO = daoFactory.getShiftDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
 
         /* Get Punch/Badge/Shift Objects */
 
         Punch p = punchDAO.find(436);
         Badge b = p.getBadge();
-        ShiftOld s = shiftDAO.find(b);
+        Shift s = shiftDAO.find(b);
         
         /* Get/Adjust Punch List */
 
@@ -83,13 +83,13 @@ public class TimeAccruedTest {
     public void testMinutesAccruedShift1Weekend() {
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
-        ShiftDAOHM shiftDAO = daoFactory.getShiftDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
 
         /* Get Punch/Badge/Shift Objects */
 
         Punch p = punchDAO.find(1087);
         Badge b = p.getBadge();
-        ShiftOld s = shiftDAO.find(b);
+        Shift s = shiftDAO.find(b);
         
         /* Get/Adjust Punch List */
 
@@ -113,13 +113,13 @@ public class TimeAccruedTest {
     public void testMinutesAccruedShift2Weekday() {
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
-        ShiftDAOHM shiftDAO = daoFactory.getShiftDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
 
         /* Get Punch/Badge/Shift Objects */
 
         Punch p = punchDAO.find(4943);
         Badge b = p.getBadge();
-        ShiftOld s = shiftDAO.find(b);
+        Shift s = shiftDAO.find(b);
         
         /* Get/Adjust Punch List */
 
@@ -138,5 +138,4 @@ public class TimeAccruedTest {
         assertEquals(540, m);
 
     }
-
 }

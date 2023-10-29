@@ -2,7 +2,6 @@ package edu.jsu.mcis.cs310.tas_fa23.dao;
 
 import java.sql.*;
 import edu.jsu.mcis.cs310.tas_fa23.Shift;
-import java.time.LocalTime;
 import java.util.HashMap;
 import edu.jsu.mcis.cs310.tas_fa23.Badge;
 
@@ -16,8 +15,6 @@ public class ShiftDAO {
     private final String badgeQuery = "select * from employee where badgeid = ?";
     
     private final DAOFactory daoFactory;
-    
-    private LocalTime shiftStart = null, shiftStop = null, lunchStart = null, lunchStop = null;
     
     private int shiftID = 0;
     
