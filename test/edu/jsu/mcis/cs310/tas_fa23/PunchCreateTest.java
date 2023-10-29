@@ -71,7 +71,7 @@ public class PunchCreateTest {
 
         /* Create New Punch Object */
         
-        Punch p1 = new Punch(82, badgeDAO.find("DD6E2C0C"), EventType.CLOCK_IN);
+        Punch p1 = new Punch(101, badgeDAO.find("DD6E2C0C"), EventType.CLOCK_IN);
 
         /* Create Timestamp Objects */
         
@@ -113,7 +113,7 @@ public class PunchCreateTest {
 
         /* Create New Punch Object */
         
-        Punch p1 = new Punch(127, badgeDAO.find("ADD650A8"), EventType.CLOCK_OUT);
+        Punch p1 = new Punch(107, badgeDAO.find("ADD650A8"), EventType.CLOCK_OUT);
 
         /* Create Timestamp Objects */
         
@@ -155,7 +155,7 @@ public class PunchCreateTest {
 
         /* Create New Punch Object */
         
-        Punch p1 = new Punch(151, badgeDAO.find("D2C39273"), EventType.CLOCK_OUT);
+        Punch p1 = new Punch(102, badgeDAO.find("D2C39273"), EventType.CLOCK_OUT);
 
         /* Create Timestamp Objects */
         

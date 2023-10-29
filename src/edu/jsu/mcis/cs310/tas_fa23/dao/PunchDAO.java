@@ -24,7 +24,7 @@ public class PunchDAO {
 
     public int create(Punch punch){
         
-        int Result = 0;
+        int result = 0;
         
         ResultSet rs = null;
         
@@ -32,7 +32,7 @@ public class PunchDAO {
         
         String badgeId = punch.getBadge().getId();
         
-        Timestamp timestamp = java.sql.Timestamp.valueOf(punch.getOriginaltimestamp());
+        Timestamp timestamp = Timestamp.valueOf(punch.getOriginaltimestamp());
         
         try{
         
@@ -40,7 +40,8 @@ public class PunchDAO {
             
             if (conn.isValid(0)) {
                 
-            /*PreparedStatement statement*/ps = conn.prepareStatement(QUERY_CREATE,PreparedStatement.RETURN_GENERATED_KEYS);
+            /*PreparedStatement statement*/
+            ps = conn.prepareStatement(QUERY_CREATE,Statement.RETURN_GENERATED_KEYS);
             
             
             ps.setString(1, badgeId);
@@ -65,7 +66,7 @@ public class PunchDAO {
                 rs = ps.getGeneratedKeys();
                 
                 if (rs.next()){
-                    Result = rs.getInt(1);
+                    result = rs.getInt(1);
                 }
             }
                 
@@ -94,7 +95,7 @@ public class PunchDAO {
                 } 
                 
             }
-        } return Result;
+        } return result;
     }   
     
     /**
