@@ -49,13 +49,11 @@ public final class DAOUtility {
     
     public static int calculateTotalMinutes(ArrayList<Punch> dailyPunchList, Shift shift)
     {
-        //for(each dailypunchlist in the weekly<punchlist>)
         DAOFactory daoFactory = new DAOFactory("tas.jdbc");
         PunchDAO punchDao = daoFactory.getPunchDAO();
         ShiftDAO shiftDao = daoFactory.getShiftDAO();
         
         Boolean timeOut = false;
-        int loopCounter = 0;
         
         Integer minutesWorked = 0;
         
@@ -66,102 +64,40 @@ public final class DAOUtility {
             punch.adjust(shift);
         }
         
-        while(loopCounter * 4 < punchlist.size())
+        if (punchlist.size() == 4)
         {
-            Boolean hasLunch = false;
-            
-            LocalDateTime index1 = punchlist.get(1 + (4 * loopCounter)).getAdjustedtimestamp();
-            LocalDateTime index2 = punchlist.get(2 + (4 * loopCounter)).getAdjustedtimestamp();
-            
-            Integer index2Minutes =(index2.getHour() * 60) + index2.getMinute();
-            Integer index1Minutes = index1.getHour() * 60 + index1.getMinute();
-            
-            Integer difference = index2Minutes - index1Minutes;
-            
-            if (difference > 20 && difference < 45)
-            {
-                hasLunch = true;
-            }
-            
-            if (hasLunch)
-            {
-                LocalDateTime clockIn = (punchlist.get(0 + (4 * loopCounter))).getAdjustedtimestamp();
-                LocalDateTime clockOut = (punchlist.get(3 + (4 * loopCounter))).getAdjustedtimestamp();
-                LocalDateTime lunchStart = (punchlist.get(1 + (4 * loopCounter))).getAdjustedtimestamp();
-                LocalDateTime lunchStop = (punchlist.get(2 + (4 * loopCounter))).getAdjustedtimestamp();
+            LocalDateTime clockIn = (punchlist.get(0)).getAdjustedtimestamp();
+            LocalDateTime clockOut = (punchlist.get(3)).getAdjustedtimestamp();
+            LocalDateTime lunchStart = (punchlist.get(1)).getAdjustedtimestamp();
+            LocalDateTime lunchStop = (punchlist.get(2)).getAdjustedtimestamp();
 
-                Integer clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getMinute();
-                Integer clockInMinutes = (clockIn.getHour() * 60) + clockIn.getMinute();
-                Integer lunchStopMinutes = (lunchStop.getHour() * 60) + lunchStop.getMinute();
-                Integer lunchStartMinutes = (lunchStart.getHour() * 60) + lunchStart.getMinute();
-
-            if (punchlist.get(4).getPunchType() == EventType.TIME_OUT)
-            {
-                timeOut = true;
-            }
-            if (timeOut == true)
-            {
-                //if timeout occurs don't add minutes
-            }
-            else
-            {
-                minutesWorked += ((clockOutMinutes - clockInMinutes) - (lunchStopMinutes - lunchStartMinutes));
-            }
-            }
-
-            else if (!hasLunch)
-            {
-                LocalDateTime clockIn  = punchlist.get(0 + (4 * loopCounter)).getAdjustedtimestamp();
-                LocalDateTime clockOut = punchlist.get(1 + (4 * loopCounter)).getAdjustedtimestamp();
-                LocalDateTime clockIn2 = punchlist.get(2 + (4 * loopCounter)).getAdjustedtimestamp();
-                LocalDateTime clockOut2 = punchlist.get(3 + (4 * loopCounter)).getAdjustedtimestamp();
-
-                Integer clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getMinute();
-                Integer clockInMinutes = (clockIn.getHour() * 60) + clockIn.getMinute();
-                Integer clockOutMinutes2 = (clockOut2.getHour() * 60 + clockOut2.getMinute());
-                Integer clockInMinutes2 = (clockIn2.getHour() * 60 + clockIn2.getMinute());
-                
-                Integer minutesWorked1 = clockOutMinutes - clockInMinutes;
-                Integer minutesWorked2 = clockOutMinutes2 - clockInMinutes2;
-             
-                if (punchlist.get(1 + (loopCounter)).getPunchType() == EventType.TIME_OUT)
-                {
-                    minutesWorked1 = 0;
-                }
-                
-                if (punchlist.get(3 + (4 * loopCounter)).getPunchType() == EventType.TIME_OUT)
-                {
-                    minutesWorked2 = 0;
-                }
-                
-                minutesWorked = minutesWorked1 + minutesWorked2;
-
-                if (minutesWorked1 > shift.getLunchThreshold())
-                {
-                    minutesWorked -= 30;
-                }
-                if (minutesWorked2 > shift.getLunchThreshold())
-                {
-                    minutesWorked -= 30;
-                }
-            }
-            loopCounter ++;
+            Integer clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getMinute();
+            Integer clockInMinutes = (clockIn.getHour() * 60) + clockIn.getMinute();
+            Integer lunchStopMinutes = (lunchStop.getHour() * 60) + lunchStop.getMinute();
+            Integer lunchStartMinutes = (lunchStart.getHour() * 60) + lunchStart.getMinute();
+            
+            minutesWorked = ((clockOutMinutes - clockInMinutes) - (lunchStopMinutes - lunchStartMinutes));
         }
         
-        if ((loopCounter * 4) - 2 == punchlist.size())
+        else if (punchlist.size() == 2)
         {
-            LocalDateTime clockIn = punchlist.get((loopCounter * 4) - 3).getAdjustedtimestamp();
-            LocalDateTime clockOut = punchlist.get((loopCounter * 4) - 2).getAdjustedtimestamp();
-            
+            LocalDateTime clockIn  = punchlist.get(0).getAdjustedtimestamp();
+            LocalDateTime clockOut = punchlist.get(1).getAdjustedtimestamp();
+
+            Integer clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getMinute();
             Integer clockInMinutes = (clockIn.getHour() * 60) + clockIn.getMinute();
-            Integer clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getHour();
+
+            minutesWorked = (clockOutMinutes - clockInMinutes);
             
-            minutesWorked += clockOutMinutes - clockInMinutes;
-            
-            if ((clockOutMinutes - clockInMinutes) >= shift.getLunchThreshold())
+            if (minutesWorked > shift.getLunchThreshold())
             {
                 minutesWorked -= 30;
             }
+        }
+        
+        if (timeOut == true)
+        {
+            minutesWorked = 0;
         }
         
         return minutesWorked;
