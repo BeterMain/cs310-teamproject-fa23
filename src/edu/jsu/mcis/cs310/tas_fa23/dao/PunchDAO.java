@@ -30,10 +30,6 @@ public class PunchDAO {
         
         PreparedStatement ps = null; 
         
-        String badgeId = punch.getBadge().getId();
-        
-        Timestamp timestamp = Timestamp.valueOf(punch.getOriginaltimestamp());
-        
         try{
         
             Connection conn = daoFactory.getConnection();
@@ -44,23 +40,16 @@ public class PunchDAO {
             ps = conn.prepareStatement(QUERY_CREATE,Statement.RETURN_GENERATED_KEYS);
             
             
-            ps.setString(1, badgeId);
+            ps.setString(1, punch.getBadge().getId());
             
             ps.setInt(2, punch.getTerminalId());
             
             ps.setInt(3, punch.getPunchType().ordinal());
             
-            ps.setTimestamp(4, timestamp);
+            ps.setTimestamp(4, Timestamp.valueOf(punch.getOriginaltimestamp()));
             
             int affectedRows = ps.executeUpdate();
-            
-            /*ResultSet generatedKeys = statement.getGeneratedKeys();
-            
-            if(generatedKeys.next()) {
-            
-                int id = generatedKeys.getInt(1);
-                
-                punch.getId();*/
+
             if (affectedRows == 1){
                 
                 rs = ps.getGeneratedKeys();

@@ -138,4 +138,26 @@ public class TimeAccruedTest {
         assertEquals(540, m);
 
     }
+    
+    @Test
+    public void testAccruedMinutes()
+    {
+        PunchDAO punchDao = daoFactory.getPunchDAO();
+        ShiftDAO shiftDao = daoFactory.getShiftDAO();
+        
+        Punch punch = punchDao.find(200);
+        Badge badge = punch.getBadge();
+        Shift shift = shiftDao.find(badge);
+        
+        ArrayList<Punch> punchlist = punchDao.list(badge, punch.getOriginaltimestamp().toLocalDate());
+        
+        for(Punch p : punchlist)
+        {
+            p.adjust(shift);
+        }
+        
+        int minutes = DAOUtility.calculateTotalMinutes(punchlist, shift);
+        
+        assertEquals(480, minutes);
+    }
 }
