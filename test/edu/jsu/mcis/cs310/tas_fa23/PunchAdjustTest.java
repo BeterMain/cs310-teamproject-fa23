@@ -219,5 +219,33 @@ public class PunchAdjustTest {
         assertEquals("#4382D92D CLOCK OUT: THU 08/02/2018 16:45:00 (Interval Round)", p2.printAdjusted());
 
     }
+    
+    @Test
+    public void testAdjustPunchesShift4Lunch() {
+
+        /* Get Shift Ruleset and Punch Data */
+        
+        PunchDAO punchDAO = daoFactory.getPunchDAO();
+        ShiftDAO shiftDAO = daoFactory.getShiftDAO();
+
+        Shift s1 = shiftDAO.find(1);
+
+        Punch p1 = punchDAO.find(4805);
+        Punch p2 = punchDAO.find(5966);
+
+        /* Adjust Punches According to Shift Rulesets */
+        
+        p1.adjust(s1);
+        p2.adjust(s1);
+
+        /* Compare Adjusted Timestamps to Expected Values */
+        
+        assertEquals("#08D01475 CLOCK OUT: SAT 09/15/2018 12:00:00", p1.printOriginal());
+        assertEquals("#08D01475 CLOCK OUT: SAT 09/15/2018 12:00:00 (Interval Round)", p1.printAdjusted());
+        
+        assertEquals("#87176FD7 CLOCK IN: WED 09/26/2018 12:29:33", p2.printOriginal());
+        assertEquals("#87176FD7 CLOCK IN: WED 09/26/2018 12:30:00 (Lunch Stop)", p2.printAdjusted());
+
+    }
 
 }
