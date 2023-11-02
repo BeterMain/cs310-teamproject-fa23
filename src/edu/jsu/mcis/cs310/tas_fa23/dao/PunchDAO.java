@@ -24,15 +24,19 @@ public class PunchDAO {
 
     public int create(Punch punch){
         
-        int Result = 0;
+        /* Declare Variables */
+        
+        int result = 0;
+        int departmentId = 0;
+        int terminalId = -1;
+        
+        boolean hasResults;
         
         ResultSet rs = null;
-        
         PreparedStatement ps = null; 
         
-        String badgeId = punch.getBadge().getId();
-        
-        Timestamp timestamp = java.sql.Timestamp.valueOf(punch.getOriginaltimestamp());
+        String QUERY_FIND_EMPLOYEE = "SELECT * FROM employee WHERE badgeid = ?";
+        String QUERY_FIND_DEPARTMENT = "SELECT * FROM department WHERE id = ?";
         
         try{
         
@@ -40,62 +44,106 @@ public class PunchDAO {
             
             if (conn.isValid(0)) {
                 
-            /*PreparedStatement statement*/ps = conn.prepareStatement(QUERY_CREATE,PreparedStatement.RETURN_GENERATED_KEYS);
-            
-            
-            ps.setString(1, badgeId);
-            
-            ps.setInt(2, punch.getTerminalId());
-            
-            ps.setInt(3, punch.getPunchType().ordinal());
-            
-            ps.setTimestamp(4, timestamp);
-            
-            int affectedRows = ps.executeUpdate();
-            
-            /*ResultSet generatedKeys = statement.getGeneratedKeys();
-            
-            if(generatedKeys.next()) {
-            
-                int id = generatedKeys.getInt(1);
+                /* Authorization Process */
                 
-                punch.getId();*/
-            if (affectedRows == 1){
+                /* Look for employee department id */
                 
-                rs = ps.getGeneratedKeys();
+                ps = conn.prepareStatement(QUERY_FIND_EMPLOYEE);
+                ps.setString(1, punch.getBadge().getId());
                 
-                if (rs.next()){
-                    Result = rs.getInt(1);
+                hasResults = ps.execute();
+                
+                if (hasResults) {
+                    
+                    rs = ps.getResultSet();
+                    
+                    if (rs.next()) {
+                        departmentId = rs.getInt("departmentid");
+                    }
+                    
+                    rs.close();
                 }
-            }
+                
+                /* Look for department terminal id */
+                
+                ps = conn.prepareStatement(QUERY_FIND_DEPARTMENT);
+                ps.setInt(1, departmentId);
+                
+                hasResults = ps.execute();
+                
+                if (hasResults) {
+                    
+                    rs = ps.getResultSet();
+                    
+                    if (rs.next()) {
+                        terminalId = rs.getInt("terminalid");
+                    }
+                    
+                    rs.close();
+                }
+                
+                
+                /* Check If Punch Terminal Id is 0 (Manually Entered) */
+                
+                if (punch.getTerminalId() == 0) {
+                    
+                    ps = conn.prepareStatement(QUERY_CREATE,Statement.RETURN_GENERATED_KEYS);
+
+                    ps.setString(1, punch.getBadge().getId());
+                    ps.setInt(2, punch.getTerminalId());
+                    ps.setInt(3, punch.getPunchType().ordinal());
+                    ps.setTimestamp(4, Timestamp.valueOf(punch.getOriginaltimestamp()));
+
+                    int affectedRows = ps.executeUpdate();
+
+                    if (affectedRows > 0){
+
+                        rs = ps.getGeneratedKeys();
+
+                        if (rs.next()){
+                            result = rs.getInt(1);
+                        }
+                    }
+                }
+                
+                /* Comapare Department Terminal Id and Punch Terminal Id */
+                
+                else if (punch.getTerminalId() == terminalId) {
+                    
+                    ps = conn.prepareStatement(QUERY_CREATE,Statement.RETURN_GENERATED_KEYS);
+
+                    ps.setString(1, punch.getBadge().getId());
+                    ps.setInt(2, punch.getTerminalId());
+                    ps.setInt(3, punch.getPunchType().ordinal());
+                    ps.setString(4, punch.getOriginaltimestamp().toString());
+
+                    int affectedRows = ps.executeUpdate();
+
+                    if (affectedRows > 0){
+
+                        rs = ps.getGeneratedKeys();
+
+                        if (rs.next()){
+                            result = rs.getInt(1);
+                        }
+                    }
+                }
                 
              
-            }       
-        } catch(SQLException e){
-            
-            throw new DAOException(e.getMessage());
-        } finally {
-            if (rs != null){
-                try{
-                    rs.close();
-                } catch (SQLException e){
-                    
-                  throw new DAOException(e.getMessage());
-                }
-                if (ps != null){
-                try{
-                    ps.close();
-                } catch (SQLException e){
-                    
-                  throw new DAOException(e.getMessage());
-                
-                }
-                    
-                } 
-                
             }
-        } return Result;
-    }   
+        } 
+        catch (Exception e) { e.printStackTrace(); }
+        
+        finally {
+            
+            if (rs != null) { try { rs.close(); } catch (Exception e) { e.printStackTrace(); } }
+            if (ps != null) { try { ps.close(); } catch (Exception e) { e.printStackTrace(); } }
+            
+        }
+        
+        return result;
+        
+    }
     
     /**
      *  Searches through the "event" database table, looking for the integer "id"
@@ -256,7 +304,7 @@ public class PunchDAO {
                 /* Execute prepare statement again but with the next day of punch*/
                 
                 ps.setString(1, badge.getId());
-                ps.setString(2, secondDay.toString() + "%");
+                ps.setString(2, secondDay.toString());
                 
                 // Execute 
                 hasResults = ps.execute();
@@ -358,6 +406,7 @@ public class PunchDAO {
                     
                     rs = ps.getResultSet();
                     LocalDate start;
+                    
                     if (rs.next()) {
                         start = rs.getTimestamp("timestamp").toLocalDateTime().toLocalDate();
                     }

@@ -62,11 +62,6 @@ public final class DAOUtility {
         for (Punch punch : punchlist)
         {
             punch.adjust(shift);
-            
-            if (punch.getPunchType() == EventType.TIME_OUT)
-            {
-                timeOut = true;
-            }
         }
         
         if (punchlist.size() == 4)

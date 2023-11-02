@@ -65,7 +65,6 @@ public class PunchListFindTest {
         }
 
         /* Compare Output Strings */
-        
         assertEquals(s2.toString(), s1.toString());
 
     }

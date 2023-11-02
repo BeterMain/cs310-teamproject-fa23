@@ -49,7 +49,7 @@ public class PunchCreateTest {
         /* Retrieve New Punch */
         
         Punch p2 = punchDAO.find(punchid);
-
+        
         /* Compare Punches */
         
         assertEquals(badgeid, p2.getBadge().getId());
@@ -71,7 +71,7 @@ public class PunchCreateTest {
 
         /* Create New Punch Object */
         
-        Punch p1 = new Punch(82, badgeDAO.find("DD6E2C0C"), EventType.CLOCK_IN);
+        Punch p1 = new Punch(104, badgeDAO.find("DD6E2C0C"), EventType.CLOCK_IN);
 
         /* Create Timestamp Objects */
         
@@ -113,7 +113,7 @@ public class PunchCreateTest {
 
         /* Create New Punch Object */
         
-        Punch p1 = new Punch(127, badgeDAO.find("ADD650A8"), EventType.CLOCK_OUT);
+        Punch p1 = new Punch(102, badgeDAO.find("ADD650A8"), EventType.CLOCK_OUT);
 
         /* Create Timestamp Objects */
         
@@ -148,6 +148,26 @@ public class PunchCreateTest {
     @Test
     public void testCreatePunch4() {
 
+        PunchDAO punchDAO = daoFactory.getPunchDAO();
+        BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
+        
+        int expected = 0;
+        
+        /* Create New Punch Object */
+        
+        Punch p1 = new Punch(107, badgeDAO.find("D2C39273"), EventType.CLOCK_OUT);
+        
+        /* Insert Punch Into Database */
+        
+        int punchid = punchDAO.create(p1);
+        
+        assertEquals(expected, punchid);
+
+    }
+    
+    @Test
+    public void testCreatePunch5() {
+
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         PunchDAO punchDAO = daoFactory.getPunchDAO();
@@ -155,7 +175,7 @@ public class PunchCreateTest {
 
         /* Create New Punch Object */
         
-        Punch p1 = new Punch(151, badgeDAO.find("D2C39273"), EventType.CLOCK_OUT);
+        Punch p1 = new Punch(0, badgeDAO.find("9186E711"), EventType.CLOCK_OUT);
 
         /* Create Timestamp Objects */
         
@@ -181,7 +201,7 @@ public class PunchCreateTest {
         assertEquals(badgeid, p2.getBadge().getId());
 
         rts = p2.getOriginaltimestamp();
-
+        
         assertEquals(terminalid, p2.getTerminalId());
         assertEquals(punchtype, p2.getPunchType());
         assertEquals(ots.format(dtf), rts.format(dtf));
