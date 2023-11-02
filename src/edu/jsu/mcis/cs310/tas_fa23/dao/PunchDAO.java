@@ -30,8 +30,6 @@ public class PunchDAO {
         int departmentId = 0;
         int terminalId = -1;
         
-        String ts = punch.getOriginaltimestamp().toString();
-        System.out.println(ts);
         boolean hasResults;
         
         ResultSet rs = null;
