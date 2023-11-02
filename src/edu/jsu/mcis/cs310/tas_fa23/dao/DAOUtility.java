@@ -102,4 +102,69 @@ public final class DAOUtility {
         
         return minutesWorked;
     }
+    
+    public static int calculateTotalMinutes2(ArrayList<Punch> dailyPunchList, Shift shift)
+    {
+        DAOFactory daoFactory = new DAOFactory("tas.jdbc");
+        PunchDAO punchDao = daoFactory.getPunchDAO();
+        ShiftDAO shiftDao = daoFactory.getShiftDAO();
+        
+        Punch punch = null;
+        Boolean timeOut = false, hasClockIn = false, hasClockOut = false, hasTimeOut = false;
+        Integer minutesWorked = 0, clockInMinutes = 0, clockOutMinutes = 0, minutesWorkedInShift = 0;
+        LocalDateTime clockIn = null, clockOut = null;
+        
+        ArrayList<Punch> punchlist = dailyPunchList;
+        
+        for (Punch punch2 : punchlist)
+        {
+            punch2.adjust(shift);
+        }
+        
+        for(int i = 0; i < punchlist.size(); i++)
+        {
+            if (punchlist.get(i).getPunchType() == punch.getPunchType().CLOCK_IN && !hasClockIn)
+            {
+                clockIn = punchlist.get(i).getAdjustedtimestamp();
+                clockInMinutes = (clockIn.getHour() * 60) + clockIn.getMinute();
+                
+                hasClockIn = true;
+            }
+            
+            
+            else if (punchlist.get(i).getPunchType() == punch.getPunchType().CLOCK_OUT && hasClockIn)
+            {
+                clockOut = punchlist.get(i).getAdjustedtimestamp();
+                clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getMinute();
+                
+                hasClockOut = true;
+            }
+            
+            //else if there is a timeout
+            
+            
+            if (hasClockIn && hasClockOut)
+            {
+                
+                minutesWorkedInShift = clockOutMinutes - clockInMinutes;
+                
+                if (minutesWorkedInShift >= shift.getLunchThreshold())
+                {
+                    minutesWorkedInShift -= 30;
+                }
+                
+                minutesWorked += minutesWorkedInShift;
+                
+                hasClockOut = false;
+                hasClockIn = false;
+            }
+            
+            else if(hasClockIn && hasTimeOut)
+            {
+                hasClockIn = false;
+                hasTimeOut = false;
+            }
+        }
+        return minutesWorked;
+    }
 }
