@@ -8,6 +8,7 @@ import com.github.cliftonlabs.json_simple.*;
 import edu.jsu.mcis.cs310.tas_fa23.EventType;
 import edu.jsu.mcis.cs310.tas_fa23.Punch;
 import edu.jsu.mcis.cs310.tas_fa23.Shift;
+import java.math.BigDecimal;
 
 /**
  * 
@@ -47,79 +48,16 @@ public final class DAOUtility {
         return result;
     }
     
-    public static int calculateTotalMinutes2(ArrayList<Punch> dailyPunchList, Shift shift)
+    public static int calculateTotalMinutes(ArrayList<Punch> punchlist, Shift s)
     {
-        DAOFactory daoFactory = new DAOFactory("tas.jdbc");
-        PunchDAO punchDao = daoFactory.getPunchDAO();
-        ShiftDAO shiftDao = daoFactory.getShiftDAO();
+        boolean hasClockIn = false, hasClockOut = false;
+        Integer minutesWorked = 0, clockInMinutes = 0, clockOutMinutes = 0, minutesWorkedInShift;
+        LocalDateTime clockIn, clockOut;
         
-        Boolean timeOut = false;
+        LocalTime lunchStop = s.getLunchStop();
+        LocalTime lunchStart = s.getLunchStart();
         
-        Integer minutesWorked = 0;
-        
-        ArrayList<Punch> punchlist = dailyPunchList;
-        
-        for (Punch punch : punchlist)
-        {
-            punch.adjust(shift);
-        }
-        
-        if (punchlist.size() == 4)
-        {
-            LocalDateTime clockIn = (punchlist.get(0)).getAdjustedtimestamp();
-            LocalDateTime clockOut = (punchlist.get(3)).getAdjustedtimestamp();
-            LocalDateTime lunchStart = (punchlist.get(1)).getAdjustedtimestamp();
-            LocalDateTime lunchStop = (punchlist.get(2)).getAdjustedtimestamp();
-
-            Integer clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getMinute();
-            Integer clockInMinutes = (clockIn.getHour() * 60) + clockIn.getMinute();
-            Integer lunchStopMinutes = (lunchStop.getHour() * 60) + lunchStop.getMinute();
-            Integer lunchStartMinutes = (lunchStart.getHour() * 60) + lunchStart.getMinute();
-            
-            minutesWorked = ((clockOutMinutes - clockInMinutes) - (lunchStopMinutes - lunchStartMinutes));
-        }
-        
-        else if (punchlist.size() == 2)
-        {
-            LocalDateTime clockIn  = punchlist.get(0).getAdjustedtimestamp();
-            LocalDateTime clockOut = punchlist.get(1).getAdjustedtimestamp();
-
-            Integer clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getMinute();
-            Integer clockInMinutes = (clockIn.getHour() * 60) + clockIn.getMinute();
-
-            minutesWorked = (clockOutMinutes - clockInMinutes);
-            
-            if (minutesWorked > shift.getLunchThreshold())
-            {
-                minutesWorked -= 30;
-            }
-        }
-        
-        if (timeOut == true)
-        {
-            minutesWorked = 0;
-        }
-        
-        return minutesWorked;
-    }
-    
-    public static int calculateTotalMinutes(ArrayList<Punch> dailyPunchList, Shift shift)
-    {
-        DAOFactory daoFactory = new DAOFactory("tas.jdbc");
-        PunchDAO punchDao = daoFactory.getPunchDAO();
-        ShiftDAO shiftDao = daoFactory.getShiftDAO();
-        
-        Punch punch = null;
-        Boolean timeOut = false, hasClockIn = false, hasClockOut = false;
-        Integer minutesWorked = 0, clockInMinutes = 0, clockOutMinutes = 0, minutesWorkedInShift = 0;
-        LocalDateTime clockIn = null, clockOut = null;
-        
-        ArrayList<Punch> punchlist = dailyPunchList;
-        
-        for (Punch punch2 : punchlist)
-        {
-            punch2.adjust(shift);
-        }
+        int lunchLength = ((lunchStop.minusHours(lunchStart.getHour()).minusMinutes(lunchStart.getMinute())).getHour() * 60) + (lunchStop.minusHours(lunchStart.getHour()).minusMinutes(lunchStart.getMinute())).getMinute();
         
         for(int i = 0; i < punchlist.size(); i++)
         {
@@ -151,9 +89,9 @@ public final class DAOUtility {
                
                 minutesWorkedInShift = clockOutMinutes - clockInMinutes;
                 
-                if (minutesWorkedInShift >= shift.getLunchThreshold())
+                if (minutesWorkedInShift > s.getLunchThreshold())
                 {
-                    minutesWorkedInShift -= 30;
+                    minutesWorkedInShift -= lunchLength;
                 }
                 
                 minutesWorked += minutesWorkedInShift;
@@ -165,14 +103,32 @@ public final class DAOUtility {
         return minutesWorked;
     }
     
-    boolean isWeekend(LocalDate date)
-    {
-       if (date.getDayOfWeek().equals(6) || date.getDayOfWeek().equals(7))
-       {
-           return true;
-       }
-       
-       else 
-           return false;
+    public static BigDecimal calculateAbsenteeism(ArrayList<Punch> punchlist, Shift s) {
+        
+        /* Declare Variables */
+        
+        BigDecimal result;
+        
+        LocalTime sStart = s.getShiftStart();
+        LocalTime sStop = s.getShiftStop();
+        
+        float minutesWorked, scheduledMinutes = 0;
+        
+        /* Get employee minutes worked */
+        
+        minutesWorked = calculateTotalMinutes(punchlist, s);
+        
+        /* Get scheduled minutes to work */
+        
+        scheduledMinutes = ((sStop.getHour() * 60) + sStop.getMinute()) - ((sStart.getHour() * 60) + sStart.getMinute());
+        
+        /* Divide worked minutes over scheduled minutes */
+        
+        result = BigDecimal.valueOf(1 - (minutesWorked/scheduledMinutes));
+        
+        /* Return Result */
+        
+        return result;
     }
+    
 }
