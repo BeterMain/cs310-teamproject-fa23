@@ -148,8 +148,6 @@ public class PunchCreateTest {
     @Test
     public void testCreatePunch4() {
 
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
         PunchDAO punchDAO = daoFactory.getPunchDAO();
         BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
         
@@ -203,7 +201,7 @@ public class PunchCreateTest {
         assertEquals(badgeid, p2.getBadge().getId());
 
         rts = p2.getOriginaltimestamp();
-
+        
         assertEquals(terminalid, p2.getTerminalId());
         assertEquals(punchtype, p2.getPunchType());
         assertEquals(ots.format(dtf), rts.format(dtf));
