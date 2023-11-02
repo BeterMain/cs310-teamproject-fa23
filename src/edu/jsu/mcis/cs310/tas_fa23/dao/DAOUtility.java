@@ -47,7 +47,7 @@ public final class DAOUtility {
         return result;
     }
     
-    public static int calculateTotalMinutes(ArrayList<Punch> dailyPunchList, Shift shift)
+    public static int calculateTotalMinutes2(ArrayList<Punch> dailyPunchList, Shift shift)
     {
         DAOFactory daoFactory = new DAOFactory("tas.jdbc");
         PunchDAO punchDao = daoFactory.getPunchDAO();
@@ -103,14 +103,14 @@ public final class DAOUtility {
         return minutesWorked;
     }
     
-    public static int calculateTotalMinutes2(ArrayList<Punch> dailyPunchList, Shift shift)
+    public static int calculateTotalMinutes(ArrayList<Punch> dailyPunchList, Shift shift)
     {
         DAOFactory daoFactory = new DAOFactory("tas.jdbc");
         PunchDAO punchDao = daoFactory.getPunchDAO();
         ShiftDAO shiftDao = daoFactory.getShiftDAO();
         
         Punch punch = null;
-        Boolean timeOut = false, hasClockIn = false, hasClockOut = false, hasTimeOut = false;
+        Boolean timeOut = false, hasClockIn = false, hasClockOut = false;
         Integer minutesWorked = 0, clockInMinutes = 0, clockOutMinutes = 0, minutesWorkedInShift = 0;
         LocalDateTime clockIn = null, clockOut = null;
         
@@ -123,7 +123,7 @@ public final class DAOUtility {
         
         for(int i = 0; i < punchlist.size(); i++)
         {
-            if (punchlist.get(i).getPunchType() == punch.getPunchType().CLOCK_IN && !hasClockIn)
+            if (punchlist.get(i).getPunchType() == EventType.CLOCK_IN && !hasClockIn)
             {
                 clockIn = punchlist.get(i).getAdjustedtimestamp();
                 clockInMinutes = (clockIn.getHour() * 60) + clockIn.getMinute();
@@ -132,7 +132,7 @@ public final class DAOUtility {
             }
             
             
-            else if (punchlist.get(i).getPunchType() == punch.getPunchType().CLOCK_OUT && hasClockIn)
+            else if (punchlist.get(i).getPunchType() == EventType.CLOCK_OUT && hasClockIn)
             {
                 clockOut = punchlist.get(i).getAdjustedtimestamp();
                 clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getMinute();
@@ -140,12 +140,15 @@ public final class DAOUtility {
                 hasClockOut = true;
             }
             
-            //else if there is a timeout
+            else if (punchlist.get(i).getPunchType() == EventType.TIME_OUT && hasClockIn)
+            {
+                hasClockIn = false;
+            }
             
             
             if (hasClockIn && hasClockOut)
             {
-                
+               
                 minutesWorkedInShift = clockOutMinutes - clockInMinutes;
                 
                 if (minutesWorkedInShift >= shift.getLunchThreshold())
@@ -158,13 +161,18 @@ public final class DAOUtility {
                 hasClockOut = false;
                 hasClockIn = false;
             }
-            
-            else if(hasClockIn && hasTimeOut)
-            {
-                hasClockIn = false;
-                hasTimeOut = false;
-            }
         }
         return minutesWorked;
+    }
+    
+    boolean isWeekend(LocalDate date)
+    {
+       if (date.getDayOfWeek().equals(6) || date.getDayOfWeek().equals(7))
+       {
+           return true;
+       }
+       
+       else 
+           return false;
     }
 }
