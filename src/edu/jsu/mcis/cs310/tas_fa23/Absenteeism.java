@@ -1,7 +1,7 @@
 package edu.jsu.mcis.cs310.tas_fa23;
 
 import java.math.BigDecimal;
-import java.sql.*;
+import java.time.*;
 /**
  *
  * @author Connor
@@ -9,10 +9,10 @@ import java.sql.*;
 public class Absenteeism 
 {
     private Employee employee; 
-    private Date date;
+    private LocalDate date;
     private BigDecimal absentPercentage;
     
-    public Absenteeism(Employee employee, Date date, BigDecimal absentPercentage)
+    public Absenteeism(Employee employee, LocalDate date, BigDecimal absentPercentage)
     {
         this.employee = employee;
         this.date = date;
@@ -24,7 +24,7 @@ public class Absenteeism
         return employee;
     }
     
-    public Date getDate()
+    public LocalDate getDate()
     {
         return date;
     }
@@ -39,7 +39,7 @@ public class Absenteeism
         
         Double absentPercent = absenteeism.getAbsentPercenatge().doubleValue();
         Integer employeeID = absenteeism.getEmployee().getId();
-        Date day = absenteeism.getDate();
+        LocalDate day = absenteeism.getDate();
         
         return "#" + employeeID.toString() + " (Period Period Starting: " + day.toString() + "): " + absentPercent.toString() + "%";
     }

@@ -24,7 +24,7 @@ public class AbsenteeismDAO
         this.daoFactory = daoFactory;
     }
     
-    Absenteeism find(Employee employee, Date date)
+    public Absenteeism find(Employee employee, LocalDate date)
     {
         Absenteeism absenteeism = null;
         
@@ -56,7 +56,7 @@ public class AbsenteeismDAO
         return absenteeism;
     }
     
-    void create(Absenteeism absenteeism) throws SQLException
+    public void create(Absenteeism absenteeism) throws SQLException
     {
         Connection connection = daoFactory.getConnection();
         
@@ -71,7 +71,7 @@ public class AbsenteeismDAO
 
 
         Integer employeeID = absenteeism.getEmployee().getId();
-        Date timeStamp = absenteeism.getDate();
+        LocalDate timeStamp = absenteeism.getDate();
         
         try
         {
@@ -80,7 +80,7 @@ public class AbsenteeismDAO
                 
                 resultset = preparedstatement.executeQuery(FIND_QUERY);
                 preparedstatement.setInt(1, employeeID);
-                preparedstatement.setDate(2, timeStamp);
+                preparedstatement.setObject(2, timeStamp);
                 
                 if (resultset.wasNull())
                 {
