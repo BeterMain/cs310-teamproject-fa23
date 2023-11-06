@@ -15,9 +15,9 @@ public class AbsenteeismDAO
 {
     private final DAOFactory daoFactory;
     
-    private final String FIND_QUERY = "Select * from absenteeism Where employeeid = ? AND payperiod = ?";
-    private final String CREATE_QUERY = "Insert into absenteeism ('employeeid, timestamp, absenteeism) values (?, ?, ?)";
-    private final String UPDATE_QUERY = "Update percentage = ? where percentage = ?";
+    private final String FIND_QUERY = "SELECT * FROM absenteeism WHERE employeeid = ? AND payperiod = ?";
+    private final String CREATE_QUERY = "INSERT INTO absenteeism (employeeid, payperiod, percentage) values (?, ?, ?)";
+    private final String UPDATE_QUERY = "UPDATE absenteeism SET percentage = ? WHERE employeeid = ? AND payperiod = ?";
     
     AbsenteeismDAO(DAOFactory daoFactory)
     {
@@ -30,30 +30,37 @@ public class AbsenteeismDAO
         
         Connection conn = daoFactory.getConnection();
         
-        PreparedStatement preparedstatement = null;
-        ResultSet resultSet = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
         
         BigDecimal absentPercentage = null;
-        
-        
         
         try 
         {
             if (conn.isValid(0))
             {                
-                preparedstatement = conn.prepareStatement(FIND_QUERY);
-                preparedstatement.setInt(1, employee.getId());
-                preparedstatement.setObject(2, date);
-                preparedstatement.execute();
+                ps = conn.prepareStatement(FIND_QUERY);
+                ps.setInt(1, employee.getId());
+                ps.setObject(2, date);
                 
-                resultSet = preparedstatement.getResultSet();
-                if (resultSet.next())
-                {
-                    absentPercentage = resultSet.getBigDecimal(3);
+                boolean hasResults = ps.execute();
+                
+                if (hasResults) {
+                    
+                    rs = ps.getResultSet();
+                
+                    if (rs.next())
+                    {
+                        absentPercentage = rs.getBigDecimal("percentage");
+                    }
+                    
                 }
+                
             }
             
             absenteeism = new Absenteeism(employee, date, absentPercentage);
+            
+            
         }
         catch (SQLException e)
         {
@@ -63,12 +70,12 @@ public class AbsenteeismDAO
         return absenteeism;
     }
     
-    public void create(Absenteeism absenteeism) throws SQLException
+    public void create(Absenteeism absenteeism)
     {
         Connection connection = daoFactory.getConnection();
         
-        PreparedStatement preparedstatement = null;
-        ResultSet resultset = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
   
 
         BigDecimal absentPercent = absenteeism.getAbsentPercenatge();
@@ -80,34 +87,47 @@ public class AbsenteeismDAO
         {
             if(connection.isValid(0))
             {
-                preparedstatement = connection.prepareStatement(FIND_QUERY);
-                preparedstatement.setInt(1, employeeID);
-                preparedstatement.setObject(2, timeStamp);
                 
-                boolean hasResult = preparedstatement.execute();
+                /* Search for existing data */
                 
-                resultset = preparedstatement.getResultSet();
+                ps = connection.prepareStatement(FIND_QUERY);
+                ps.setInt(1, employeeID);
+                ps.setDate(2, Date.valueOf(timeStamp));
+                
+                boolean hasResult = ps.execute();
+                
+                /* Replace old percentage if data already exists */
                 
                 if (!hasResult)
                 {
-                    preparedstatement = connection.prepareStatement(CREATE_QUERY);
-                    preparedstatement.setInt(1, employeeID);
-                    preparedstatement.setObject(2, timeStamp);
-                    preparedstatement.setDouble(3, absentPercent.doubleValue());
-                    preparedstatement.execute();
+                    rs = ps.getResultSet();
+                    
+                    ps = connection.prepareStatement(UPDATE_QUERY);
+                    ps.setDouble(1, absentPercent.doubleValue());
+                    ps.setInt(2, rs.getInt("employeeid"));
+                    ps.setDate(3, rs.getDate("payperiod"));
+                    ps.execute();
                 }
+                
+                /* Add new data if it doesn't exist  */
+                
                 else
                 {
-                    preparedstatement = connection.prepareStatement(UPDATE_QUERY);
-                    preparedstatement.setDouble(1, absentPercent.doubleValue());
-                    preparedstatement.setDouble(2, resultset.getDouble(3));
-                    preparedstatement.execute();
+                    ps = connection.prepareStatement(CREATE_QUERY);
+                    ps.setInt(1, employeeID);
+                    ps.setDate(2, Date.valueOf(timeStamp));
+                    ps.setDouble(3, absentPercent.doubleValue());
+                    ps.execute();
                 }
             }
         }
-        catch(DAOException e)
-        {
-            throw new DAOException(e.getMessage());
+        catch (Exception e) { e.printStackTrace(); }
+        
+        finally {
+            
+            if (rs != null) { try { rs.close(); } catch (Exception e) { e.printStackTrace(); } }
+            if (ps != null) { try { ps.close(); } catch (Exception e) { e.printStackTrace(); } }
+            
         }
     }
 }

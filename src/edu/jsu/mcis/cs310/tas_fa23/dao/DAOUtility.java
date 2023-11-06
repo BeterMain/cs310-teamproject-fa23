@@ -52,7 +52,7 @@ public final class DAOUtility {
     {
         boolean hasClockIn = false, hasClockOut = false;
         Integer minutesWorked = 0, clockInMinutes = 0, clockOutMinutes = 0, minutesWorkedInShift;
-        LocalDateTime clockIn, clockOut;
+        LocalDateTime clockIn = null, clockOut = null;
         
         LocalTime lunchStop = s.getLunchStop();
         LocalTime lunchStart = s.getLunchStart();
@@ -64,7 +64,6 @@ public final class DAOUtility {
             if (punchlist.get(i).getPunchType() == EventType.CLOCK_IN && !hasClockIn)
             {
                 clockIn = punchlist.get(i).getAdjustedtimestamp();
-                clockInMinutes = (clockIn.getHour() * 60) + clockIn.getMinute();
                 
                 hasClockIn = true;
             }
@@ -73,7 +72,6 @@ public final class DAOUtility {
             else if (punchlist.get(i).getPunchType() == EventType.CLOCK_OUT && hasClockIn)
             {
                 clockOut = punchlist.get(i).getAdjustedtimestamp();
-                clockOutMinutes = (clockOut.getHour() * 60) + clockOut.getMinute();
                 
                 hasClockOut = true;
             }
@@ -87,7 +85,7 @@ public final class DAOUtility {
             if (hasClockIn && hasClockOut)
             {
                
-                minutesWorkedInShift = clockOutMinutes - clockInMinutes;
+                minutesWorkedInShift = (int) ChronoUnit.MINUTES.between(clockIn, clockOut);
                 
                 if (minutesWorkedInShift > s.getLunchThreshold())
                 {
@@ -120,11 +118,11 @@ public final class DAOUtility {
         
         /* Get scheduled minutes to work */
         
-        scheduledMinutes = ((sStop.getHour() * 60) + sStop.getMinute()) - ((sStart.getHour() * 60) + sStart.getMinute());
+        scheduledMinutes = ChronoUnit.MINUTES.between(sStart, sStop);
         
         /* Divide worked minutes over scheduled minutes */
         
-        result = BigDecimal.valueOf(1 - (minutesWorked/scheduledMinutes));
+        result = BigDecimal.valueOf((minutesWorked/scheduledMinutes) );
         
         /* Return Result */
         

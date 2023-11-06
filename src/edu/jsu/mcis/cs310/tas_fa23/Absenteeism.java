@@ -2,15 +2,16 @@ package edu.jsu.mcis.cs310.tas_fa23;
 
 import java.math.BigDecimal;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 /**
  *
  * @author Connor
  */
 public class Absenteeism 
 {
-    private Employee employee; 
-    private LocalDate date;
-    private BigDecimal absentPercentage;
+    private final Employee employee; 
+    private final LocalDate date;
+    private final BigDecimal absentPercentage;
     
     public Absenteeism(Employee employee, LocalDate date, BigDecimal absentPercentage)
     {
@@ -34,13 +35,16 @@ public class Absenteeism
         return absentPercentage;
     }
     
-    public String toString(Absenteeism absenteeism)
+    @Override
+    public String toString()
     {
         
-        Double absentPercent = absenteeism.getAbsentPercenatge().doubleValue();
-        Integer employeeID = absenteeism.getEmployee().getId();
-        LocalDate day = absenteeism.getDate();
+        BigDecimal absentPercent = absentPercentage;
+        Integer employeeID = employee.getId();
+        LocalDate day = date;
         
-        return "#" + employeeID.toString() + " (Period Period Starting: " + day.toString() + "): " + absentPercent.toString() + "%";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        
+        return "#" + employeeID.toString() + " (Pay Period Starting " + formatter.format(day) + "): " + absentPercent.toPlainString() + "%";
     }
 }
