@@ -9,6 +9,7 @@ import edu.jsu.mcis.cs310.tas_fa23.EventType;
 import edu.jsu.mcis.cs310.tas_fa23.Punch;
 import edu.jsu.mcis.cs310.tas_fa23.Shift;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * 
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
  * individual static methods.
  * 
  */
+
 public final class DAOUtility {
     public static String getPunchListAsJSON(ArrayList<Punch> dailypunchlist) {
         
@@ -51,7 +53,7 @@ public final class DAOUtility {
     public static int calculateTotalMinutes(ArrayList<Punch> punchlist, Shift s)
     {
         boolean hasClockIn = false, hasClockOut = false;
-        Integer minutesWorked = 0, clockInMinutes = 0, clockOutMinutes = 0, minutesWorkedInShift;
+        Integer minutesWorked = 0, minutesWorkedInShift;
         LocalDateTime clockIn = null, clockOut = null;
         
         LocalTime lunchStop = s.getLunchStop();
@@ -110,19 +112,27 @@ public final class DAOUtility {
         LocalTime sStart = s.getShiftStart();
         LocalTime sStop = s.getShiftStop();
         
-        float minutesWorked, scheduledMinutes = 0;
+        BigDecimal minutesWorked, scheduledMinutes;
+        float tempMin;
         
         /* Get employee minutes worked */
         
-        minutesWorked = calculateTotalMinutes(punchlist, s);
+        minutesWorked = BigDecimal.valueOf(calculateTotalMinutes(punchlist, s));
         
         /* Get scheduled minutes to work */
         
-        scheduledMinutes = ChronoUnit.MINUTES.between(sStart, sStop);
+        tempMin = ChronoUnit.HOURS.between(sStart, sStop);
+        tempMin *= 60f * 5f;
+        
+        scheduledMinutes = BigDecimal.valueOf(tempMin);
         
         /* Divide worked minutes over scheduled minutes */
         
-        result = BigDecimal.valueOf((minutesWorked/scheduledMinutes) );
+        result = new BigDecimal("1").subtract(minutesWorked.divide(scheduledMinutes, 3,RoundingMode.UP));
+        
+        /* Calculate Percentage */
+        
+        result = result.multiply(new BigDecimal("100")).setScale(2);
         
         /* Return Result */
         

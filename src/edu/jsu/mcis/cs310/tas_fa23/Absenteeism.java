@@ -1,6 +1,8 @@
 package edu.jsu.mcis.cs310.tas_fa23;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 /**
@@ -13,12 +15,20 @@ public class Absenteeism
     private final LocalDate date;
     private final BigDecimal absentPercentage;
     
+    /* Construtor */
+    
     public Absenteeism(Employee employee, LocalDate date, BigDecimal absentPercentage)
     {
         this.employee = employee;
         this.date = date;
-        this.absentPercentage = absentPercentage;
+        
+        /* Set Scale for percentage */
+        
+        this.absentPercentage = absentPercentage.setScale(2);
+        
     }
+    
+    /* Getters */
     
     public Employee getEmployee()
     {
@@ -35,16 +45,17 @@ public class Absenteeism
         return absentPercentage;
     }
     
+    /* Overrided toString  Method */
+    
     @Override
     public String toString()
     {
         
-        BigDecimal absentPercent = absentPercentage;
-        Integer employeeID = employee.getId();
+        String employeeID = employee.getBadge().getId();
         LocalDate day = date;
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
         
-        return "#" + employeeID.toString() + " (Pay Period Starting " + formatter.format(day) + "): " + absentPercent.toPlainString() + "%";
+        return "#" + employeeID + " (Pay Period Starting " + formatter.format(day) + "): " + absentPercentage.toString() + "%";
     }
 }

@@ -4,12 +4,9 @@ import edu.jsu.mcis.cs310.tas_fa23.*;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.sql.*;
+import java.time.DayOfWeek;
+import java.time.temporal.TemporalAdjusters;
 
-
-/**
- *
- * @author Connor
- */
 
 public class AbsenteeismDAO 
 {
@@ -19,36 +16,49 @@ public class AbsenteeismDAO
     private final String CREATE_QUERY = "INSERT INTO absenteeism (employeeid, payperiod, percentage) values (?, ?, ?)";
     private final String UPDATE_QUERY = "UPDATE absenteeism SET percentage = ? WHERE employeeid = ? AND payperiod = ?";
     
+    /* Constructor  */
+    
     AbsenteeismDAO(DAOFactory daoFactory)
     {
         this.daoFactory = daoFactory;
     }
     
+    /* Find Method */
+    
     public Absenteeism find(Employee employee, LocalDate date)
     {
+        /* Declare Variables */
+        
         Absenteeism absenteeism = null;
         
         Connection conn = daoFactory.getConnection();
         
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+        PreparedStatement ps;
+        ResultSet rs;
         
         BigDecimal absentPercentage = null;
+        
+        date = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         
         try 
         {
             if (conn.isValid(0))
-            {                
+            {
+                
+                /* Setup Query and Check for Results */
+                
                 ps = conn.prepareStatement(FIND_QUERY);
                 ps.setInt(1, employee.getId());
-                ps.setObject(2, date);
+                ps.setDate(2, Date.valueOf(date));
                 
                 boolean hasResults = ps.execute();
                 
                 if (hasResults) {
                     
                     rs = ps.getResultSet();
-                
+                    
+                    /* If results then get new absentPercent */
+                    
                     if (rs.next())
                     {
                         absentPercentage = rs.getBigDecimal("percentage");
@@ -57,6 +67,8 @@ public class AbsenteeismDAO
                 }
                 
             }
+            
+            /* Create new Absenteeism Object */
             
             absenteeism = new Absenteeism(employee, date, absentPercentage);
             
@@ -67,8 +79,12 @@ public class AbsenteeismDAO
             throw new DAOException(e.toString());
         }
         
+        /* Return Result */
+        
         return absenteeism;
     }
+    
+    /* Create Method */
     
     public void create(Absenteeism absenteeism)
     {
@@ -76,12 +92,12 @@ public class AbsenteeismDAO
         
         PreparedStatement ps = null;
         ResultSet rs = null;
-  
 
         BigDecimal absentPercent = absenteeism.getAbsentPercenatge();
         
         Integer employeeID = absenteeism.getEmployee().getId();
-        LocalDate timeStamp = absenteeism.getDate();
+        LocalDate date = absenteeism.getDate();
+        LocalDate timeStamp = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         
         try
         {
@@ -96,29 +112,37 @@ public class AbsenteeismDAO
                 
                 boolean hasResult = ps.execute();
                 
-                /* Replace old percentage if data already exists */
-                
-                if (!hasResult)
+                if (hasResult)
                 {
                     rs = ps.getResultSet();
                     
-                    ps = connection.prepareStatement(UPDATE_QUERY);
-                    ps.setDouble(1, absentPercent.doubleValue());
-                    ps.setInt(2, rs.getInt("employeeid"));
-                    ps.setDate(3, rs.getDate("payperiod"));
-                    ps.execute();
+                    /* Replace old percentage if data already exists */
+                    
+                    if (rs.next()) {
+                        
+                        ps = connection.prepareStatement(UPDATE_QUERY);
+                        ps.setDouble(1, absentPercent.doubleValue());
+                        ps.setInt(2, rs.getInt("employeeid"));
+                        ps.setDate(3, rs.getDate("payperiod"));
+                        ps.execute();
+                        
+                    }
+                    
+                    /* Add new data if it doesn't exist  */
+                    
+                    else {
+                        
+                        ps = connection.prepareStatement(CREATE_QUERY);
+                        ps.setInt(1, employeeID);
+                        ps.setDate(2, Date.valueOf(timeStamp));
+                        ps.setDouble(3, absentPercent.doubleValue());
+                        ps.execute();
+                        
+                    }
                 }
                 
-                /* Add new data if it doesn't exist  */
                 
-                else
-                {
-                    ps = connection.prepareStatement(CREATE_QUERY);
-                    ps.setInt(1, employeeID);
-                    ps.setDate(2, Date.valueOf(timeStamp));
-                    ps.setDouble(3, absentPercent.doubleValue());
-                    ps.execute();
-                }
+                
             }
         }
         catch (Exception e) { e.printStackTrace(); }
