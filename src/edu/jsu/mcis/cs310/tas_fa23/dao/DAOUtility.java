@@ -139,4 +139,47 @@ public final class DAOUtility {
         return result;
     }
     
+    public static String getPunchListPlusTotalsAsJSON(ArrayList<Punch> punchlist, Shift shift) {
+        
+        String result;
+        
+        /* Create ArrayList Object */
+        ArrayList<HashMap<String, String>> jsonData = new ArrayList<>();
+        
+        for (Punch punch : punchlist) {
+            /* Create HashMap Object (one for every Punch!) */
+            HashMap<String, String> punchData = new HashMap<>();
+
+            /* Add Punch Data to HashMap */
+            punchData.put("id", String.valueOf(punch.getId()));
+            punchData.put("badgeid", punch.getBadge().getId());
+            punchData.put("terminalid", String.valueOf(punch.getTerminalId()));
+            punchData.put("punchtype", punch.getPunchType().toString());
+            punchData.put("adjustmenttype", punch.getAdjustmentType().toString());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E MM/dd/yyyy HH:mm:ss");
+            punchData.put("originaltimestamp", punch.getOriginaltimestamp().format(formatter).toUpperCase());
+            punchData.put("adjustedtimestamp", punch.getAdjustedtimestamp().format(formatter).toUpperCase());
+            
+            /* Append HashMap to ArrayList */
+            jsonData.add(punchData);
+        }
+        
+        /* Create new HashMap Object */
+        
+        HashMap<String, Object> totalsData = new HashMap<>();
+        
+        /* Insert List of Punches and new Totals */
+        
+        totalsData.put("totalminutes", calculateTotalMinutes(punchlist, shift));
+        totalsData.put("absenteeism", String.valueOf(calculateAbsenteeism(punchlist, shift)) + "%");
+        totalsData.put("punchlist", jsonData);
+        
+        /* Serialize and Return */
+        
+        result = Jsoner.serialize(totalsData);
+        
+        return result;
+        
+    }
+    
 }
