@@ -1,6 +1,7 @@
 package edu.jsu.mcis.cs310.tas_fa23;
 
 import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 
 /**
@@ -9,29 +10,20 @@ import java.util.HashMap;
  */
 public class Shift
 {
-    LocalTime shiftStart = null, shiftStop = null, lunchStart = null, lunchStop = null;
-
-    private int id, roundInterval, gracePeriod, dockPenalty, lunchThreshold;
-    private String description;
-    private int shiftLength, lunchLength;
-    private boolean Bool = false;
     
-    public Shift(HashMap<String,Object> shiftMap)
+    final private int id, lunchDuration, shiftDuration;
+    final private String description;
+    final private DailySchedule defaultSchedule;
+    private HashMap<Integer, DailySchedule> scheduleMap = new HashMap<>();
+    
+    public Shift(int id, String description, DailySchedule defaultSchedule)
     {
-        this.id = (int) shiftMap.get("id");
-        this.description = (String) shiftMap.get("description");
-        java.sql.Time shiftStartTime = (java.sql.Time) shiftMap.get("shiftstart");
-        this.shiftStart = shiftStartTime.toLocalTime();
-        java.sql.Time time = (java.sql.Time) shiftMap.get("shiftstop");
-        this.shiftStop = time.toLocalTime();
-        this.roundInterval = (int) shiftMap.get("roundinterval");
-        this.gracePeriod = (int) shiftMap.get("graceperiod");
-        this.dockPenalty = (int) shiftMap.get("dockpenalty");
-        java.sql.Time lunchStartTime = (java.sql.Time) shiftMap.get("lunchstart");
-        this.lunchStart = lunchStartTime.toLocalTime();
-        java.sql.Time lunchStopTime = (java.sql.Time) shiftMap.get("lunchstop");
-        this.lunchStop = lunchStopTime.toLocalTime();
-        this.lunchThreshold = (int) shiftMap.get("lunchthreshold");
+        /* Initialize Variables */
+        this.id = id;
+        this.description = description;
+        this.defaultSchedule = defaultSchedule;
+        this.lunchDuration = (int) ChronoUnit.MINUTES.between(defaultSchedule.getLunchStart(), defaultSchedule.getLunchStop());
+        this.shiftDuration = ((defaultSchedule.getShiftStop().minusHours(defaultSchedule.getShiftStart().getHour()).minusMinutes(defaultSchedule.getShiftStart().getMinute())).getHour() * 60) + (defaultSchedule.getShiftStop().minusHours(defaultSchedule.getShiftStart().getHour()).minusMinutes(defaultSchedule.getShiftStart().getMinute())).getMinute();
     }
     
     public int getID()
@@ -46,42 +38,52 @@ public class Shift
     
     public LocalTime getShiftStart()
     {
-        return shiftStart;
+        return defaultSchedule.getShiftStart();
     }
     
     public LocalTime getShiftStop()
     {
-        return shiftStop;
+        return defaultSchedule.getShiftStop();
     }
     
     public int getRoundInterval()
     {
-        return roundInterval;
+        return defaultSchedule.getRoundInterval();
     }
     
     public int getGracePeriod()
     {
-        return gracePeriod;
+        return defaultSchedule.getGracePeriod();
     }
     
     public int getDockPenalty()
     {
-        return dockPenalty;
+        return defaultSchedule.getDockPenalty();
     }
     
     public LocalTime getLunchStart()
     {
-        return lunchStart;
+        return defaultSchedule.getLunchStart();
     }
     
     public LocalTime getLunchStop()
     {
-        return lunchStop;
+        return defaultSchedule.getLunchStop();
     }
     
     public int getLunchThreshold()
     {
-        return lunchThreshold;
+        return defaultSchedule.getLunchThreshold();
+    }
+    
+    public DailySchedule getDefaultSchedule()
+    {
+        return defaultSchedule;
+    }
+    
+    public DailySchedule getDailySchedule(DayOfWeek day)
+    {
+        return scheduleMap.get(day.getValue());
     }
     
     @Override
@@ -90,11 +92,11 @@ public class Shift
         StringBuilder s = new StringBuilder();
         
         s.append(description).append(": ");
-        s.append(shiftStart).append(" - ").append(shiftStop).append(" (");
-        s.append(((shiftStop.minusHours(shiftStart.getHour()).minusMinutes(shiftStart.getMinute())).getHour() * 60) + (shiftStop.minusHours(shiftStart.getHour()).minusMinutes(shiftStart.getMinute())).getMinute());
+        s.append(defaultSchedule.getShiftStart()).append(" - ").append(defaultSchedule.getShiftStop()).append(" (");
+        s.append(shiftDuration);
         s.append(" minutes); ");
-        s.append("Lunch: ").append(lunchStart).append(" - ").append(lunchStop);
-        s.append(" (").append(((lunchStop.minusHours(lunchStart.getHour()).minusMinutes(lunchStart.getMinute())).getHour() * 60) + (lunchStop.minusHours(lunchStart.getHour()).minusMinutes(lunchStart.getMinute())).getMinute());
+        s.append("Lunch: ").append(defaultSchedule.getLunchStart()).append(" - ").append(defaultSchedule.getLunchStop());
+        s.append(" (").append(lunchDuration);
         s.append(" minutes)");
         return s.toString();
     }
