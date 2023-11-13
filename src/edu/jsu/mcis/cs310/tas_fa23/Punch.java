@@ -93,23 +93,29 @@ public class Punch {
         
         Boolean weekend = false;
         DayOfWeek day = originalTimestamp.getDayOfWeek();
+        DailySchedule schedule;
         LocalTime punchTime = originalTimestamp.toLocalTime();
         
         if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY){
             weekend = true;
+            schedule = s.getDefaultSchedule();
+        }
+        else {
+            schedule = s.getDailySchedule(day);
         }
         
         // Get all vars from shift parameter
-        Integer dock = s.getDockPenalty();
-        int interval = s.getRoundInterval();
-        Integer grace = s.getGracePeriod();
+        Integer dock = schedule.getDockPenalty();
+        int interval = schedule.getRoundInterval();
+        Integer grace = schedule.getGracePeriod();
         
-        LocalTime sStart = s.getShiftStart();
-        LocalTime lStart = s.getLunchStart();
-        LocalTime sStop = s.getShiftStop();
-        LocalTime lStop = s.getLunchStop();
+        LocalTime sStart = schedule.getShiftStart();
+        LocalTime lStart = schedule.getLunchStart();
+        LocalTime sStop = schedule.getShiftStop();
+        LocalTime lStop = schedule.getLunchStop();
         
         /* Main Logic */
+        
         // Rule for dock penalty
         boolean isDock = punchTime.isAfter(sStart) && punchTime.isBefore(sStart.plusMinutes(dock));
         

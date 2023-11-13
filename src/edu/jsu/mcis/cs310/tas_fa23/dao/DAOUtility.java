@@ -5,6 +5,7 @@ import java.util.*;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import com.github.cliftonlabs.json_simple.*;
+import edu.jsu.mcis.cs310.tas_fa23.DailySchedule;
 import edu.jsu.mcis.cs310.tas_fa23.EventType;
 import edu.jsu.mcis.cs310.tas_fa23.Punch;
 import edu.jsu.mcis.cs310.tas_fa23.Shift;
@@ -56,13 +57,24 @@ public final class DAOUtility {
         Integer minutesWorked = 0, minutesWorkedInShift;
         LocalDateTime clockIn = null, clockOut = null;
         
-        LocalTime lunchStop = s.getLunchStop();
-        LocalTime lunchStart = s.getLunchStart();
-        
-        int lunchLength = ((lunchStop.minusHours(lunchStart.getHour()).minusMinutes(lunchStart.getMinute())).getHour() * 60) + (lunchStop.minusHours(lunchStart.getHour()).minusMinutes(lunchStart.getMinute())).getMinute();
-        
         for(int i = 0; i < punchlist.size(); i++)
         {
+            DayOfWeek day = punchlist.get(i).getAdjustedtimestamp().getDayOfWeek();
+            DailySchedule schedule;
+            if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY){
+                schedule = s.getDefaultSchedule();
+            }
+            else {
+                schedule = s.getDailySchedule(day);
+            }
+            // TODO: Change location into for loop and get corresponding dail schedule instead of default
+            
+            LocalTime lunchStop = schedule.getLunchStop();
+            LocalTime lunchStart = schedule.getLunchStart();
+
+            int lunchLength = (int) ChronoUnit.MINUTES.between(lunchStart, lunchStop);
+            
+            // Logic
             if (punchlist.get(i).getPunchType() == EventType.CLOCK_IN && !hasClockIn)
             {
                 clockIn = punchlist.get(i).getAdjustedtimestamp();
@@ -109,11 +121,10 @@ public final class DAOUtility {
         
         BigDecimal result;
         
-        LocalTime sStart = s.getShiftStart();
-        LocalTime sStop = s.getShiftStop();
+        HashMap<Integer, DailySchedule> scheduleMap = s.getScheduleMap();
         
         BigDecimal minutesWorked, scheduledMinutes;
-        float tempMin;
+        float tempMin = 0;
         
         /* Get employee minutes worked */
         
@@ -121,18 +132,24 @@ public final class DAOUtility {
         
         /* Get scheduled minutes to work */
         
-        tempMin = ChronoUnit.HOURS.between(sStart, sStop);
-        tempMin *= 60f * 5f;
-        
+        for (DailySchedule schedule : scheduleMap.values()) 
+        {
+            LocalTime sStart = schedule.getShiftStart();
+            LocalTime sStop = schedule.getShiftStop();
+
+            tempMin += ChronoUnit.HOURS.between(sStart, sStop);
+            
+        }
+        tempMin *= 60f;
         scheduledMinutes = BigDecimal.valueOf(tempMin);
         
         /* Divide worked minutes over scheduled minutes */
         
-        result = new BigDecimal("1").subtract(minutesWorked.divide(scheduledMinutes, 3,RoundingMode.UP));
-        
+        result = new BigDecimal("1").subtract(minutesWorked.divide(scheduledMinutes, 5,RoundingMode.UP));
+        System.out.println(result.toPlainString());
         /* Calculate Percentage */
         
-        result = result.multiply(new BigDecimal("100")).setScale(2);
+        result = result.multiply(new BigDecimal("100")).setScale(2,RoundingMode.HALF_UP);
         
         /* Return Result */
         

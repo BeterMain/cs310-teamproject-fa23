@@ -86,6 +86,14 @@ public class Shift
         return scheduleMap.get(day.getValue());
     }
     
+    public HashMap<Integer, DailySchedule> getScheduleMap() {
+        return scheduleMap;
+    }
+    
+    public void setScheduleMap(HashMap<Integer, DailySchedule> scheduleMap) {
+        this.scheduleMap = scheduleMap;
+    }
+    
     @Override
     public String toString()
     {
