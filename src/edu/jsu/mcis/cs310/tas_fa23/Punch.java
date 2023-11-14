@@ -190,6 +190,31 @@ public class Punch {
 
                 }
                 
+                else if (punchTime.isBefore(sStart) && punchTime.isBefore(sStart.minusMinutes(interval)))
+                {
+                    adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
+
+                    // Round the time up
+                    int remainder = punchTime.getMinute() % interval;
+                    if (remainder > interval/2) {
+                        remainder = interval - remainder;
+                        punchTime = punchTime.plusMinutes(remainder);
+                    }
+
+                    // Find the middle of the interval and round the time up if above 30 seconds
+                    else if (remainder == 7 && punchTime.getSecond() > 30) {
+                        remainder = interval - remainder;
+                        punchTime = punchTime.plusMinutes(remainder);
+                    }
+
+                    // Round the time down
+                    else {
+                        punchTime = punchTime.minusMinutes(remainder);
+                    }
+
+                    // Reset seconds to zero
+                    punchTime = punchTime.withSecond(0);
+                }
                 else {
                     
                     // If the punch time divided by the round interval is == 0 
@@ -231,7 +256,7 @@ public class Punch {
             }
             
             
-            /* If it is "Clock Out" then procede */
+            /* If it is "Clock Out" then proceed */
             else {
                 
                 // If the punch time within the Round interval and is after Shift stop
