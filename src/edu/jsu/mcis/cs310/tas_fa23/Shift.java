@@ -18,6 +18,14 @@ public class Shift
     
     public Shift(int id, String description, DailySchedule defaultSchedule)
     {
+        /* Add Default Schedules to the Map */
+        for (int i = 1; i < 6; i++)
+        {
+            DayOfWeek day = DayOfWeek.of(i);
+                            
+            scheduleMap.put(day.getValue(), defaultSchedule);
+        }
+        
         /* Initialize Variables */
         this.id = id;
         this.description = description;

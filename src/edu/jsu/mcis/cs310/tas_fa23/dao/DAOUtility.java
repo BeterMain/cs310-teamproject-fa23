@@ -67,7 +67,6 @@ public final class DAOUtility {
             else {
                 schedule = s.getDailySchedule(day);
             }
-            // TODO: Change location into for loop and get corresponding dail schedule instead of default
             
             LocalTime lunchStop = schedule.getLunchStop();
             LocalTime lunchStart = schedule.getLunchStart();
@@ -136,17 +135,19 @@ public final class DAOUtility {
         {
             LocalTime sStart = schedule.getShiftStart();
             LocalTime sStop = schedule.getShiftStop();
-
-            tempMin += ChronoUnit.HOURS.between(sStart, sStop);
-            
+            LocalTime lStart = schedule.getLunchStart();
+            LocalTime lStop = schedule.getLunchStop();
+                    
+            tempMin += (ChronoUnit.MINUTES.between(sStart, sStop) - ChronoUnit.MINUTES.between(lStart, lStop));
         }
-        tempMin *= 60f;
+        
         scheduledMinutes = BigDecimal.valueOf(tempMin);
         
         /* Divide worked minutes over scheduled minutes */
         
         result = new BigDecimal("1").subtract(minutesWorked.divide(scheduledMinutes, 5,RoundingMode.UP));
-        System.out.println(result.toPlainString());
+        System.out.println("minutes worked: " + minutesWorked.toPlainString());
+        System.out.println("scheduled minutes: " + scheduledMinutes.toPlainString());
         /* Calculate Percentage */
         
         result = result.multiply(new BigDecimal("100")).setScale(2,RoundingMode.HALF_UP);

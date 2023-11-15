@@ -162,7 +162,7 @@ public class Punch {
                 }
                 
                 // (Else if) If the punch time is outside of the dock interval and grace period brefore and after the shift
-                else if (punchTime.isAfter(sStart) && punchTime.getMinute() % interval != 0 && !isDock) { 
+                else if (punchTime.getMinute() % interval != 0 && !isDock) {  
 
                     // Set the adjustment variable to "Interval Round"
                     adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
@@ -188,32 +188,6 @@ public class Punch {
                     // Reset seconds to zero
                     punchTime = punchTime.withSecond(0);
 
-                }
-                
-                else if (punchTime.isBefore(sStart) && punchTime.isBefore(sStart.minusMinutes(interval)))
-                {
-                    adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
-
-                    // Round the time up
-                    int remainder = punchTime.getMinute() % interval;
-                    if (remainder > interval/2) {
-                        remainder = interval - remainder;
-                        punchTime = punchTime.plusMinutes(remainder);
-                    }
-
-                    // Find the middle of the interval and round the time up if above 30 seconds
-                    else if (remainder == 7 && punchTime.getSecond() > 30) {
-                        remainder = interval - remainder;
-                        punchTime = punchTime.plusMinutes(remainder);
-                    }
-
-                    // Round the time down
-                    else {
-                        punchTime = punchTime.minusMinutes(remainder);
-                    }
-
-                    // Reset seconds to zero
-                    punchTime = punchTime.withSecond(0);
                 }
                 else {
                     
@@ -279,7 +253,7 @@ public class Punch {
                 }
                 
                 // (Else if) If the punch time is outside of the dock interval and grace period brefore and after the shift
-                else if (punchTime.isAfter(sStart) && punchTime.getMinute() % interval != 0 && !isDock) { 
+                else if (punchTime.getMinute() % interval != 0 && !isDock) { 
 
                     // Set the adjustment variable to "Interval Round"
                     adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;

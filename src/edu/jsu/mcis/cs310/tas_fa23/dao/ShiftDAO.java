@@ -7,12 +7,13 @@ import edu.jsu.mcis.cs310.tas_fa23.Badge;
 import edu.jsu.mcis.cs310.tas_fa23.DailySchedule;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 
 public class ShiftDAO {
     
     private final String SHIFTIDQUERY = "SELECT * FROM shift WHERE id = ?";
     private final String SCHEDULEIDQUERY = "SELECT * FROM dailyschedule WHERE id = ?";
-    private final String OVERRIDEQUERY = "SELECT * FROM scheduleoverride WHERE ? BETWEEN DATE(start) and DATE(end)";
+    private final String OVERRIDEQUERY = "SELECT * FROM scheduleoverride WHERE DATE(start) = ?";
     private final String BADGEQUERY = "SELECT * FROM employee WHERE badgeid = ?";
     
     private final DAOFactory daoFactory;
@@ -195,6 +196,7 @@ public class ShiftDAO {
                 
                 // Check for if local date equals schedule override table value "start"
                 ps = conn.prepareStatement(OVERRIDEQUERY);
+                ts = ts.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
                 ps.setDate(1, Date.valueOf(ts));
                 
                 result = ps.execute();
