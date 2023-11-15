@@ -105,6 +105,9 @@ public class Punch {
         }
         
         // Get all vars from shift parameter
+        int minute = punchTime.getMinute();
+        int adjustedMinute;
+        
         Integer dock = schedule.getDockPenalty();
         int interval = schedule.getRoundInterval();
         Integer grace = schedule.getGracePeriod();
@@ -126,7 +129,7 @@ public class Punch {
             if (punchTime.isAfter(lStart) && punchTime.isBefore(lStop)) {
                 
                 // Assign adjustment variable to "Lunch Start" 
-                if (punchTime.getMinute() - lStart.getMinute() < lStop.getMinute() - punchTime.getMinute()) {
+                if (minute - lStart.getMinute() < lStop.getMinute() - minute) {
                     adjustmentType = PunchAdjustmentType.LUNCH_START;
                     punchTime = lStart;
                 }
@@ -162,37 +165,32 @@ public class Punch {
                 }
                 
                 // (Else if) If the punch time is outside of the dock interval and grace period brefore and after the shift
-                else if (punchTime.getMinute() % interval != 0 && !isDock) {  
+                else if (minute % interval != 0 && !isDock) {  
 
                     // Set the adjustment variable to "Interval Round"
                     adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
 
                     // Round the time up
-                    int remainder = punchTime.getMinute() % interval;
-                    if (remainder > interval/2) {
-                        remainder = interval - remainder;
-                        punchTime = punchTime.plusMinutes(remainder);
+                    int remainder = minute % interval;
+                    
+                    if (remainder < interval/2) {
+                        adjustedMinute = Math.round(minute/interval) * interval;
+                        
+                        
                     }
-
-                    // Find the middle of the interval and round the time up if above 30 seconds
-                    else if (remainder == 7 && punchTime.getSecond() > 30) {
-                        remainder = interval - remainder;
-                        punchTime = punchTime.plusMinutes(remainder);
-                    }
-
                     // Round the time down
                     else {
-                        punchTime = punchTime.minusMinutes(remainder);
+                        adjustedMinute = (Math.round(minute/interval) * interval) + interval;
                     }
-
-                    // Reset seconds to zero
+                    
+                    punchTime = punchTime.plusMinutes(adjustedMinute - minute);
                     punchTime = punchTime.withSecond(0);
 
                 }
                 else {
                     
                     // If the punch time divided by the round interval is == 0 
-                    if (punchTime.getMinute() % interval == 0) {
+                    if (minute % interval == 0) {
                         
                         // If the punch time after the "Shift start" is within the Dock period 
                         if (punchTime.isAfter(sStart) && punchTime.isBefore(sStart.plusMinutes(dock+1))) {
@@ -253,38 +251,32 @@ public class Punch {
                 }
                 
                 // (Else if) If the punch time is outside of the dock interval and grace period brefore and after the shift
-                else if (punchTime.getMinute() % interval != 0 && !isDock) { 
+                else if (minute % interval != 0 && !isDock) { 
 
                     // Set the adjustment variable to "Interval Round"
                     adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
 
                     // Round the time up
-                    int remainder = punchTime.getMinute() % interval;
-                    if (remainder > interval/2) {
-                        remainder = interval - remainder;
-                        punchTime = punchTime.plusMinutes(remainder);
+                    int remainder = minute % interval;
+                    
+                    if (remainder < interval/2) {
+                        adjustedMinute = Math.round(minute/interval) * interval;
+                        
+                        
                     }
-
-                    // Find the middle of the interval and round the time up if above 30 seconds
-                    else if (remainder == 7 && punchTime.getSecond() > 30) {
-                        remainder = interval - remainder;
-                        punchTime = punchTime.plusMinutes(remainder);
-                    }
-
                     // Round the time down
                     else {
-                        punchTime = punchTime.minusMinutes(remainder);
+                        adjustedMinute = (Math.round(minute/interval) * interval) + interval;
                     }
-
-                    // Reset seconds to zero
+                    
+                    punchTime = punchTime.plusMinutes(adjustedMinute - minute);
                     punchTime = punchTime.withSecond(0);
-
                 }
                 
                 else {
                     
                     // If the punch time divided by the round interval is == 0 
-                    if (punchTime.getMinute() % interval == 0) {
+                    if (minute % interval == 0) {
                         
                         // If the punch time after the "Shift start" is within the Dock period 
                         if (punchTime.isBefore(sStop) && punchTime.isAfter(sStop.minusMinutes(dock+1))) {
@@ -325,25 +317,20 @@ public class Punch {
             // Set the adjustment variable to "Interval Round"
             adjustmentType = PunchAdjustmentType.INTERVAL_ROUND;
             
-            // Round the time up 
-            int remainder = punchTime.getMinute() % interval;
-            if (remainder > interval/2) {
-                remainder = interval - remainder;
-                punchTime = punchTime.plusMinutes(remainder);
+            // Round the time up
+            int remainder = minute % interval;
+                    
+            if (remainder < interval/2) {
+                adjustedMinute = Math.round(minute/interval) * interval;
+                        
+                        
             }
-            
-            // Find the middle of the interval and round the time up if above 30 seconds
-            else if (remainder == 7 && punchTime.getSecond() > 30) {
-                remainder = interval - remainder;
-                punchTime = punchTime.plusMinutes(remainder);
-            }
-            
             // Round the time down
             else {
-                punchTime = punchTime.minusMinutes(remainder);
+                adjustedMinute = (Math.round(minute/interval) * interval) + interval;
             }
-            
-            // Reset seconds to zero
+                    
+            punchTime = punchTime.plusMinutes(adjustedMinute - minute);
             punchTime = punchTime.withSecond(0);
         }
         
