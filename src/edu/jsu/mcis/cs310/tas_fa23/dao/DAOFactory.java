@@ -25,7 +25,7 @@ public final class DAOFactory {
         } catch (SQLException e) {
             throw new DAOException(e.getMessage());
         }
-
+        
     }
 
     Connection getConnection() {
@@ -50,5 +50,8 @@ public final class DAOFactory {
     }
     public AbsenteeismDAO getAbsenteeismDAO() {
         return new AbsenteeismDAO(this);
+    }
+    public ReportDAO getReportDAO(){
+        return new ReportDAO(this);
     }
 }
