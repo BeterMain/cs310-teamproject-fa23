@@ -45,7 +45,7 @@ public class ReportDAO {
                     while (rs.next()) {
 
                         String description = rs.getString("description");
-                        b = new (id, description);
+                        b = new (id, descriptionid);
 
                     }
                     
