@@ -146,8 +146,7 @@ public final class DAOUtility {
         /* Divide worked minutes over scheduled minutes */
         
         result = new BigDecimal("1").subtract(minutesWorked.divide(scheduledMinutes, 5,RoundingMode.UP));
-        System.out.println("minutes worked: " + minutesWorked.toPlainString());
-        System.out.println("scheduled minutes: " + scheduledMinutes.toPlainString());
+        
         /* Calculate Percentage */
         
         result = result.multiply(new BigDecimal("100")).setScale(2,RoundingMode.HALF_UP);

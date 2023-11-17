@@ -74,4 +74,60 @@ public class Version2_BadgeSummaryTest {
 
     }
     
+    @Test
+    public void testBadgeSummaryByDepartment2() {
+        
+        JsonArray jsonExpected = null, jsonActual = null;
+        
+        try {
+        
+            String jsonExpectedString = "[{\"badgeid\":\"9186E711\",\"name\":\"Adams, Cruz C\",\"department\":\"Cleaning\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"DFE4EB13\",\"name\":\"Black, Jose S\",\"department\":\"Cleaning\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"2A5620A0\",\"name\":\"Eaton, Curtis M\",\"department\":\"Cleaning\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"B09A75D7\",\"name\":\"Lawrence, Fredrick C\",\"department\":\"Cleaning\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"E215F3DB\",\"name\":\"Wright, Ann T\",\"department\":\"Cleaning\",\"type\":\"Temporary Employee\"}]";
+            jsonExpected = (JsonArray)Jsoner.deserialize(jsonExpectedString);
+            
+            /* Get "Badge Summary" Report (Grinding Dept) */
+
+            String jsonActualString = reportDAO.getBadgeSummary(2);
+            jsonActual = (JsonArray)Jsoner.deserialize(jsonActualString);
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        /* Compare to Expected Values */
+        
+        assertNotNull(jsonExpected);
+        assertNotNull(jsonActual);
+        assertEquals(jsonExpected, jsonActual);
+
+    }
+    
+    @Test
+    public void testBadgeSummaryByDepartment3() {
+        
+        JsonArray jsonExpected = null, jsonActual = null;
+        
+        try {
+        
+            String jsonExpectedString = "[{\"badgeid\":\"D928AFBA\",\"name\":\"Ali, James E\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"8DB842EF\",\"name\":\"Arney, Veronica C\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"C0063C4C\",\"name\":\"Cain, Kenneth M\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"021890C0\",\"name\":\"Chapell, George R\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"CEA28723\",\"name\":\"Claude, Lillian A\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"BD9BB983\",\"name\":\"Dahl, Tamara G\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"8709982E\",\"name\":\"Dent, Judy E\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"C6C1C0F2\",\"name\":\"Dickman, Freda C\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"6AA1785E\",\"name\":\"Ellis, Gloria L\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"6C0D1549\",\"name\":\"Franklin, Ronald W\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"639D4185\",\"name\":\"Gaines, Lee E\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"0886BF12\",\"name\":\"Gibson, Theresa E\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"29C3C7D4\",\"name\":\"Gomez, Rose M\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"BE51FA92\",\"name\":\"Harris, Andrea D\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"C278A564\",\"name\":\"Hill, Rose R\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"3C03B8D7\",\"name\":\"Howard, Wm N\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"55BAF4B1\",\"name\":\"Hoyt, Larry E\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"DFDFE648\",\"name\":\"Jinks, James R\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"8A90B9A3\",\"name\":\"Kawamoto, Thomas S\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"0B8C3085\",\"name\":\"King, Harry L\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"99F0C0FA\",\"name\":\"Kite, Ernest A\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"4C459F1E\",\"name\":\"Knaus, Robert B\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"76E920D9\",\"name\":\"Lambert, Dorothy G\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"D2CC71D4\",\"name\":\"Lawson, Matthew J\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"1D52BFA2\",\"name\":\"Lowery, Tracy A\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"8D9E5710\",\"name\":\"Melia, Ali J\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"C8E646D8\",\"name\":\"Merrick, Thomas L\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"45E5059F\",\"name\":\"Osborne, Marcus K\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"82A8539F\",\"name\":\"Patterson, Rosalee T\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"618072EA\",\"name\":\"Perales, Earl M\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"6CA0FF4A\",\"name\":\"Pierce, Elaine J\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"B5A117E9\",\"name\":\"Sullivan, Mary C\",\"department\":\"Assembly\",\"type\":\"Full-Time Employee\"},{\"badgeid\":\"BAD139D6\",\"name\":\"Sutherland, Sandra R\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"},{\"badgeid\":\"E6386C7C\",\"name\":\"Teel, Kelly K\",\"department\":\"Assembly\",\"type\":\"Temporary Employee\"}]";
+            jsonExpected = (JsonArray)Jsoner.deserialize(jsonExpectedString);
+            
+            /* Get "Badge Summary" Report (Grinding Dept) */
+
+            String jsonActualString = reportDAO.getBadgeSummary(1);
+            jsonActual = (JsonArray)Jsoner.deserialize(jsonActualString);
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        /* Compare to Expected Values */
+        
+        assertNotNull(jsonExpected);
+        assertNotNull(jsonActual);
+        assertEquals(jsonExpected, jsonActual);
+
+    }
+    
 }
