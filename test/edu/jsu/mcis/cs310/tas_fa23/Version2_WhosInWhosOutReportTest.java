@@ -30,7 +30,7 @@ public class Version2_WhosInWhosOutReportTest {
             jsonExpected = (JsonArray)Jsoner.deserialize(jsonExpectedString);
             
             /* Get "Who's In, Who's Out" Report (2018-09-05 at 7:00am, Assembly Dept) */
-
+            
             LocalDateTime ts = LocalDateTime.of(2018, 9, 5, 7, 0);
 
             String jsonActualString = reportDAO.getWhosInWhosOut(ts, 1);
