@@ -149,7 +149,7 @@ public final class DAOUtility {
         
         /* Calculate Percentage */
         
-        result = result.multiply(new BigDecimal("100")).setScale(2,RoundingMode.HALF_UP);
+        result = result.multiply(new BigDecimal("100")).setScale(2,RoundingMode.HALF_EVEN);
         
         /* Return Result */
         

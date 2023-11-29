@@ -7,7 +7,6 @@ import edu.jsu.mcis.cs310.tas_fa23.Badge;
 import edu.jsu.mcis.cs310.tas_fa23.DailySchedule;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 
 public class ShiftDAO {
     
@@ -92,12 +91,12 @@ public class ShiftDAO {
                         
                         shift = new Shift(id, description, dailySchedule);
                         
+                }
+                        
                     }
                     
                 }
-                
             }
-        }
         catch (Exception e) { e.printStackTrace(); }
         
         finally {

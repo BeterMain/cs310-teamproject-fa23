@@ -15,6 +15,7 @@ public class AbsenteeismDAO
     private final String FIND_QUERY = "SELECT * FROM absenteeism WHERE employeeid = ? AND payperiod = ?";
     private final String CREATE_QUERY = "INSERT INTO absenteeism (employeeid, payperiod, percentage) values (?, ?, ?)";
     private final String UPDATE_QUERY = "UPDATE absenteeism SET percentage = ? WHERE employeeid = ? AND payperiod = ?";
+    private final String CLEAR_QUERY = "DELETE FROM absenteeism WHERE employeeid = ?";
     
     /* Constructor  */
     
@@ -154,4 +155,34 @@ public class AbsenteeismDAO
             
         }
     }
+    
+    public void clear(Integer employeeId) {
+
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+
+            Connection conn = daoFactory.getConnection();
+
+            if (conn.isValid(0)) {
+
+                ps = conn.prepareStatement(CLEAR_QUERY);
+                ps.setInt(1, employeeId);
+
+                ps.execute();
+                
+            }
+
+        } catch (Exception e) { e.printStackTrace(); }
+        
+        finally {
+            
+            if (rs != null) { try { rs.close(); } catch (Exception e) { e.printStackTrace(); } }
+            if (ps != null) { try { ps.close(); } catch (Exception e) { e.printStackTrace(); } }
+            
+        }
+        
+    }
+    
 }

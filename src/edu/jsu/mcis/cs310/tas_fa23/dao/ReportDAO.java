@@ -4,6 +4,8 @@ package edu.jsu.mcis.cs310.tas_fa23.dao;
 import com.github.cliftonlabs.json_simple.Jsoner;
 import edu.jsu.mcis.cs310.tas_fa23.Badge;
 import edu.jsu.mcis.cs310.tas_fa23.Department;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,12 +14,15 @@ import java.time.*;
 
 public class ReportDAO { 
     
-    private final String SINGLEQUERY = "SELECT * FROM employee WHERE departmentid = ? ORDER BY lastname, firstname ";
-    private final String MANYQUERY = "SELECT * FROM employee ORDER BY lastname, firstname ";
-    private final String EMPLOYEETYPEQUERY = "SELECT * FROM employeetype WHERE id = ?";
+    private final String SINGLE_QUERY = "SELECT * FROM employee WHERE departmentid = ? ORDER BY lastname, firstname ";
+    private final String MANY_QUERY = "SELECT * FROM employee ORDER BY lastname, firstname ";
+    private final String EMPLOYEETYPE_QUERY = "SELECT * FROM employeetype WHERE id = ?";
+    private final String EMPLOYEEID_QUERY = "SELECT * FROM employee WHERE id = ?";
+    private final String ABSENTEEISMACEND_QUERY = "SELECT * FROM absenteeism WHERE employeeid = ? ORDER BY payperiod";
+    private final String ABSENTEEISMDESC_QUERY  = "SELECT * FROM absenteeism WHERE employeeid = ? ORDER BY payperiod desc";
+    private final String SINGLEDEPARTMENT_QUERY = "Select * from employee where departmentid = ?";
+    private final String ALLEMPLOYEES_QUERY = "Select * from employee";
     private final DAOFactory daoFactory;
-    private final String SINGLEDEPARTMENT = "Select * from employee where departmentid = ?";
-    private final String ALLEMPLOYEES = "Select * from employee";
     
     public ReportDAO(DAOFactory daoFactory) {
         
@@ -36,10 +41,10 @@ public class ReportDAO {
         
         /* Check if the id is null */
         if (id == null) {
-            query = MANYQUERY;
+            query = MANY_QUERY;
         }
         else {
-            query = SINGLEQUERY; 
+            query = SINGLE_QUERY; 
         }
         
         PreparedStatement ps = null;
@@ -71,7 +76,7 @@ public class ReportDAO {
                     while (rs.next()) {
                         
                         /* Run employeetype Table Query */
-                        ps = conn.prepareStatement(EMPLOYEETYPEQUERY);
+                        ps = conn.prepareStatement(EMPLOYEETYPE_QUERY);
                         ps.setInt(1, rs.getInt("employeetypeid"));
 
                         boolean hasSecondResults = ps.execute();
@@ -134,8 +139,10 @@ public class ReportDAO {
         return result;
     }
     
-    public JsonArray getWhosInWhosOut(LocalDateTime timeStamp, Integer departmentID)
+    public String getWhosInWhosOut(LocalDateTime timeStamp, Integer departmentID)
     {
+        String result = null;
+        
         JsonObject employees = new JsonObject();
         JsonArray FullTimeCI = new JsonArray();
         JsonArray TempCI = new JsonArray();
@@ -152,7 +159,7 @@ public class ReportDAO {
         ResultSet rs = null;
         try {
             if (departmentID == null) {
-                ps = conn.prepareStatement(ALLEMPLOYEES);
+                ps = conn.prepareStatement(ALLEMPLOYEES_QUERY);
                 rs = ps.executeQuery();
                 
                 while (rs.next())
@@ -193,7 +200,7 @@ public class ReportDAO {
             
             else 
             {
-                ps = conn.prepareStatement(SINGLEDEPARTMENT);
+                ps = conn.prepareStatement(SINGLEDEPARTMENT_QUERY);
                 ps.setInt(1, departmentID);
                 
                 rs = ps.executeQuery();
@@ -240,5 +247,145 @@ public class ReportDAO {
         }
         
         //return final result
+        return result;
+    }
+    
+    public String getAbsenteeismHistory(Integer employeeId) {
+        
+        String result;
+        
+        BigDecimal lifetime;
+        ArrayList<BigDecimal> lifetimeList = new ArrayList<>();
+        
+        JsonArray historyData = new JsonArray();
+        JsonObject jsonData = new JsonObject();
+        
+        BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
+        DepartmentDAO departmentDAO = daoFactory.getDepartmentDAO();
+        
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        
+        try {
+            
+            Connection conn = daoFactory.getConnection();
+            
+            if (conn.isValid(0)) {
+                
+                ps = conn.prepareStatement(EMPLOYEEID_QUERY);
+                ps.setInt(1, employeeId);
+
+                boolean hasResults = ps.execute();
+
+                if (hasResults) {
+                    
+                    rs = ps.getResultSet();
+                    
+                    if (rs.next()) {
+                            
+                        /* Search through first results and assign values */
+                        
+                        /* Find a badge object for complete description */
+                        Badge b = badgeDAO.find(rs.getString("badgeid"));
+
+                        /* Find a department object for complete description */
+                        Department d = departmentDAO.find(rs.getInt("departmentid"));
+
+                        /* Put all of the data into the HashMap */
+                        jsonData.put("badgeid", b.getId());
+                        jsonData.put("name", b.getDescription());
+                        jsonData.put("department", d.getDescription());
+                        
+                    }
+                }
+                
+                /* Use acending query to calculate lifetime across payperiods */
+                ps = conn.prepareStatement(ABSENTEEISMACEND_QUERY);
+                ps.setInt(1, employeeId);
+                
+                hasResults = ps.execute();
+                
+                if (hasResults) {
+                    
+                    rs = ps.getResultSet();
+                    
+                    /* Create local variables for average percentage across payperiods */
+                    float percentage = 0f;
+                    int count = 1;
+                    
+                    while (rs.next()) {
+                    
+                        /* Calculate Average for each payperiod */
+                        percentage += rs.getDouble("percentage");
+                        lifetime = BigDecimal.valueOf(percentage / count);
+                        lifetime = lifetime.setScale(2, RoundingMode.HALF_UP);
+                        lifetimeList.add(lifetime);
+                        count++;
+                        
+                    }
+                    
+                }
+                
+                /* Use query to get absenteeism data */
+                ps = conn.prepareStatement(ABSENTEEISMDESC_QUERY);
+                ps.setInt(1, employeeId);
+                
+                hasResults = ps.execute();
+                
+                if (hasResults) {
+                    
+                    rs = ps.getResultSet();
+                    
+                    int count = lifetimeList.size()-1;
+                    
+                    while (rs.next()) {
+                        
+                        /* Create JsonObject for each record */
+                        JsonObject recordData = new JsonObject();
+                        
+                        /* Add payperiod to JsonObject */
+                        recordData.put("payperiod", rs.getDate("payperiod").toString());
+                        
+                        /* Add absenteeism percentage to JsonObject */
+                        recordData.put("percentage", rs.getBigDecimal("percentage").setScale(2));
+                        
+                        /* Add lifetime value from lifetimeList to JsonObject */
+                        recordData.put("lifetime", lifetimeList.get(count));
+                        count--;
+                        
+                        /* Add record into history data */
+                        historyData.add(recordData);
+                        
+                    }
+                    
+                    /* Add completed history to jsonData */
+                    jsonData.put("absenteeismhistory", historyData);
+                    
+                }
+                    
+            }
+                
+            /* If no data available, print an error */
+
+            else {
+
+                System.err.println("No Data Found!");
+
+            }
+            
+        }
+        catch (Exception e) { e.printStackTrace(); }
+        
+        finally {
+            
+            if (rs != null) { try { rs.close(); } catch (Exception e) { e.printStackTrace(); } }
+            if (ps != null) { try { ps.close(); } catch (Exception e) { e.printStackTrace(); } }
+            
+        }
+        
+        result = Jsoner.serialize(jsonData);
+        
+        return result;
+        
     }
 }

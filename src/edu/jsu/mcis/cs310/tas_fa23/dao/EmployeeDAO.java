@@ -70,7 +70,7 @@ public class EmployeeDAO {
                         Department department = departmentDAO.find(rs.getInt("departmentid"));
                         
                         ShiftDAO shiftDAO = daoFactory.getShiftDAO();
-                        Shift shift = shiftDAO.find(id);
+                        Shift shift = shiftDAO.find(rs.getInt("shiftid"));
                         
                         // Create a EmployeeType object and assign the correct description
                         EmployeeType employeeType = null;
