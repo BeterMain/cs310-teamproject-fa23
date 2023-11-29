@@ -7,6 +7,8 @@ import edu.jsu.mcis.cs310.tas_fa23.Department;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import com.github.cliftonlabs.json_simple.*;
+import java.time.*;
 
 public class ReportDAO { 
     
@@ -14,6 +16,8 @@ public class ReportDAO {
     private final String MANYQUERY = "SELECT * FROM employee ORDER BY lastname, firstname ";
     private final String EMPLOYEETYPEQUERY = "SELECT * FROM employeetype WHERE id = ?";
     private final DAOFactory daoFactory;
+    private final String SINGLEDEPARTMENT = "Select * from employee where departmentid = ?";
+    private final String ALLEMPLOYEES = "Select * from employee";
     
     public ReportDAO(DAOFactory daoFactory) {
         
@@ -128,5 +132,113 @@ public class ReportDAO {
         result = Jsoner.serialize(jsonData);
         
         return result;
+    }
+    
+    public JsonArray getWhosInWhosOut(LocalDateTime timeStamp, Integer departmentID)
+    {
+        JsonObject employees = new JsonObject();
+        JsonArray FullTimeCI = new JsonArray();
+        JsonArray TempCI = new JsonArray();
+        JsonArray FullTimeCO = new JsonArray();
+        JsonArray TempCO = new JsonArray();
+        
+        String employeeTypeString = "", inOrOut = "";
+        Integer employeeTypeID, shiftID;
+        Boolean wasClockedIn = false, isFullTime = false;
+        
+        Connection conn = daoFactory.getConnection();
+        
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            if (departmentID == null) {
+                ps = conn.prepareStatement(ALLEMPLOYEES);
+                rs = ps.executeQuery();
+                
+                while (rs.next())
+                {
+                    if (rs.getInt("employeetypeid") == 1)
+                    {
+                        employeeTypeString = "Full-Time Employee";
+                        isFullTime = true;
+                    }
+                    else
+                    {
+                        employeeTypeString = "Temporary Employee";
+                        isFullTime = false;
+                    }
+                    
+                    //if (employee is clocked in)
+                    //assign the wasClockedIn variable as true and assign inOut String as In
+                    //also add an arrived timestamp at the beginning for when the clocked in
+                    
+                    //else
+                    //assign the wasClockedIn variable as false and assign inOut String as Out
+                    
+                    employees.put("employeetype", employeeTypeString);
+                    employees.put("firstname", rs.getString("firstname"));
+                    employees.put("badgeid", rs.getString("badgeid"));
+                    employees.put("shift", rs.getInt("shiftid"));
+                    employees.put("lastname", rs.getString("lastname"));
+                    employees.put("status", inOrOut);
+                    
+                    //if (clockedIn && isFullTime == true)
+                    //add to FullTimeCI array
+                    
+                    //so on so forth for all 4 conditions
+                }
+                                
+                //append list together in correct order
+            }
+            
+            else 
+            {
+                ps = conn.prepareStatement(SINGLEDEPARTMENT);
+                ps.setInt(1, departmentID);
+                
+                rs = ps.executeQuery();
+                
+                while (rs.next())
+                {
+                    if (rs.getInt("departmentid") == 1)
+                    {
+                        employeeTypeString = "Full-Time Employee";
+                        isFullTime = true;
+                    }
+                    else
+                    {
+                        employeeTypeString = "Temporary Employee";
+                        isFullTime = false;
+                    }
+                    
+                    //if (employee is clocked in)
+                    //assign the wasClockedIn variable as true and assign inOut String as In
+                    //also add an arrived timestamp at the beginning for when the clocked in
+                    
+                    //else
+                    //assign the wasClockedIn variable as false and assign inOut String as Out
+                    
+                    employees.put("employeetype", employeeTypeString);
+                    employees.put("firstname", rs.getString("firstname"));
+                    employees.put("badgeid", rs.getString("badgeid"));
+                    employees.put("shift", rs.getInt("shiftid"));
+                    employees.put("lastname", rs.getString("lastname"));
+                    employees.put("status", inOrOut);
+                    
+                    //if (clockedIn && isFullTime == true)
+                    //add to FullTimeCI array
+                    
+                    //so on so forth for all 4 conditions
+                    
+                    //append list together in correct order
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        
+        //return final result
     }
 }
