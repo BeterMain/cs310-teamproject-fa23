@@ -19,13 +19,13 @@ public class Main {
         BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
         
         // find badge
-
+        
         Badge b = badgeDAO.find("31A25435");
         
         // output should be "Test Badge: #31A25435 (Munday, Paul J)"
         
         System.err.println("Test Badge: " + b.toString());
         
+        }
+        
     }
-            
-}
