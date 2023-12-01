@@ -48,6 +48,66 @@ public class Version2_WhosInWhosOutReportTest {
         assertEquals(jsonExpected, jsonActual);
 
     }
+    
+    @Test
+    public void testWhosInWhosOutByDepartment2() {
+        
+        JsonArray jsonExpected = null, jsonActual = null;
+        
+        try {
+        
+            String jsonExpectedString = "[{\"arrived\":\"WED 09/05/2018 06:59:46\",\"employeetype\":\"Full-Time Employee\",\"firstname\":\"Jose\",\"badgeid\":\"DFE4EB13\",\"shift\":\"Shift 1\",\"lastname\":\"Black\",\"status\":\"In\"},{\"employeetype\":\"Temporary Employee\",\"firstname\":\"Cruz\",\"badgeid\":\"9186E711\",\"shift\":\"Shift 1\",\"lastname\":\"Adams\",\"status\":\"Out\"},{\"employeetype\":\"Temporary Employee\",\"firstname\":\"Curtis\",\"badgeid\":\"2A5620A0\",\"shift\":\"Shift 1\",\"lastname\":\"Eaton\",\"status\":\"Out\"},{\"employeetype\":\"Temporary Employee\",\"firstname\":\"Fredrick\",\"badgeid\":\"B09A75D7\",\"shift\":\"Shift 1\",\"lastname\":\"Lawrence\",\"status\":\"Out\"},{\"employeetype\":\"Temporary Employee\",\"firstname\":\"Ann\",\"badgeid\":\"E215F3DB\",\"shift\":\"Shift 1\",\"lastname\":\"Wright\",\"status\":\"Out\"}]";
+            jsonExpected = (JsonArray)Jsoner.deserialize(jsonExpectedString);
+            
+            /* Get "Who's In, Who's Out" Report (2018-09-05 at 7:00am, Assembly Dept) */
+            
+            LocalDateTime ts = LocalDateTime.of(2018, 9, 5, 7, 0);
+
+            String jsonActualString = reportDAO.getWhosInWhosOut(ts, 2);
+            jsonActual = (JsonArray)Jsoner.deserialize(jsonActualString);
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        /* Compare to Expected Values */
+        
+        assertNotNull(jsonExpected);
+        assertNotNull(jsonActual);
+        assertEquals(jsonExpected, jsonActual);
+
+    }
+    
+    @Test
+    public void testWhosInWhosOutByDepartment3() {
+        
+        JsonArray jsonExpected = null, jsonActual = null;
+        
+        try {
+        
+            String jsonExpectedString = "[{\"employeetype\":\"Temporary Employee\",\"firstname\":\"Rodney\",\"badgeid\":\"C1E4758D\",\"shift\":\"Shift 1\",\"lastname\":\"Leist\",\"status\":\"Out\"}]";
+            jsonExpected = (JsonArray)Jsoner.deserialize(jsonExpectedString);
+            
+            /* Get "Who's In, Who's Out" Report (2018-09-05 at 7:00am, Assembly Dept) */
+            
+            LocalDateTime ts = LocalDateTime.of(2018, 9, 5, 7, 0);
+
+            String jsonActualString = reportDAO.getWhosInWhosOut(ts, 3);
+            jsonActual = (JsonArray)Jsoner.deserialize(jsonActualString);
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        /* Compare to Expected Values */
+        
+        assertNotNull(jsonExpected);
+        assertNotNull(jsonActual);
+        assertEquals(jsonExpected, jsonActual);
+
+    }
 
     @Test
     public void testWhosInWhosOutAll() {

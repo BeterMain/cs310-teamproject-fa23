@@ -10,6 +10,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import com.github.cliftonlabs.json_simple.*;
+import edu.jsu.mcis.cs310.tas_fa23.EventType;
 import edu.jsu.mcis.cs310.tas_fa23.Punch;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -152,23 +153,22 @@ public class ReportDAO {
         String result;
         
         JsonArray jsonData = new JsonArray();
-        JsonArray fullTimeCI = new JsonArray();
-        JsonArray tempCI = new JsonArray();
+        JsonArray fullTimeclockedIn = new JsonArray();
+        JsonArray tempclockedIn = new JsonArray();
         JsonArray fullTimeCO = new JsonArray();
         JsonArray tempCO = new JsonArray();
         
         String employeeTypeString;
-        Boolean CI = false;
+        Boolean clockedIn = false;
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
         BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
         
         PreparedStatement ps;
-        ResultSet rs, rs2 = null;
+        ResultSet rs, rs2;
         
-        LocalDateTime arrivalTime = null;
-        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd");
-        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM");
+        LocalDateTime arrivalTime = LocalDateTime.MIN;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E MM/dd/yyyy HH:mm:ss");
         
         /* Choose which query to use */
         String query;
@@ -201,27 +201,30 @@ public class ReportDAO {
                 
                 while (rs.next())
                 {
+                    /* Setup query to get correct shift description */
                     ps = conn.prepareStatement(SHIFTDESC_QUERY);
                     ps.setInt(1, rs.getInt("shiftid"));
-                    Boolean hasAResult = false;
+                    
+                    Boolean hasSecondResult;
                     String shiftString = "";
                     
-                    hasAResult = ps.execute();
+                    hasSecondResult = ps.execute();
                     
-                    if (hasAResult)
+                    if (hasSecondResult)
                     {
-                        rs2 = ps.executeQuery();
+                        rs2 = ps.getResultSet();
+                        if (rs2.next())
+                        {
+                            /* Save shift description */
+                            shiftString = rs2.getString("description");
+                        }
                     }
                     
-                    while(rs2.next())
-                    {
-                        shiftString = rs2.getString("description");
-                    }
-                    
-                    Boolean wasClockedIn = false, isFullTime = false;
+                    /* Get employee type and set isFullTime  appropriately */
+                    Boolean wasClockedIn = false, isFullTime;
                     
                     JsonObject employees = new JsonObject();
-                    String inOrOut = "Out", dayOfWeek = "";
+                    String inOrOut = "Out";
                     
                     if (rs.getInt("employeetypeid") == 1)
                     {
@@ -234,8 +237,6 @@ public class ReportDAO {
                         isFullTime = false;
                     }
                     
-                    /* TODO: Fix logic with calulating status for employee */
-                    
                     /* Create a variables for getting punch list */
                     Badge badge = badgeDAO.find(rs.getString("badgeid"));
                     
@@ -244,63 +245,61 @@ public class ReportDAO {
                     /* Loop through the punch list */
                     for (Punch p : punchList) 
                     {
-                        //if (employee is clocked in && was before the timestamp)
-                        if (p.getPunchType() == p.getPunchType().CLOCK_IN && p.getOriginaltimestamp().isBefore(timestamp))
+                        
+                        //if (employee is clocked in && was before the timestamp or equal to it)
+                        if (p.getPunchType() == EventType.CLOCK_IN && (p.getOriginaltimestamp().isBefore(timestamp) || p.getOriginaltimestamp().equals(timestamp)))
                         {
-                            CI = true;
+                            /* Set the clockedIn varibale to true and save the timestamp */
+                            clockedIn = true;
                             arrivalTime = p.getOriginaltimestamp();
-                            dayOfWeek = arrivalTime.toLocalDate().getDayOfWeek().toString();
-                            dayOfWeek = dayOfWeek.substring(0, 3);
+                            
                         }
                             
                         //if has a valid clock in and a clock out punch is done after the timestamp
-                        if (CI == true && p.getPunchType() == p.getPunchType().CLOCK_OUT && p.getOriginaltimestamp().isAfter(timestamp))
+                        if (clockedIn && (p.getPunchType() == EventType.CLOCK_OUT || p.getPunchType() == EventType.TIME_OUT) && p.getOriginaltimestamp().isAfter(timestamp))
                         {
-                            /* If find matching pair */
-                            /* Break out the loop */
-                            //assign the wasClockedIn variable as true and assign inOut String as In
-                            //also add an arrived timestamp at the beginning for when the clocked in
-                            employees.put("arrived", dayOfWeek + " " + arrivalTime.toLocalDate().format(monthFormatter)
-                                + "/" + arrivalTime.toLocalDate().format(dayFormatter) + "/" + arrivalTime.toLocalDate().getYear()
-                                + " " + arrivalTime.toLocalTime());
-                            CI = false;
+                            /* also add an arrived timestamp at the beginning for when the employee clocked in */
+                            employees.put("arrived",arrivalTime.format(formatter).toUpperCase());
+                            
+                            /* assign the wasClockedIn variable as true and assign inOut String as In */
+                            clockedIn = false;
                             wasClockedIn = true;
                             inOrOut = "In";
+                            
+                            /* End the loop */
                             break;
                         }
 
-                        //if clockout was before the timestamp reset the loop
-                        else if (CI == true && p.getPunchType() == p.getPunchType().CLOCK_OUT && p.getOriginaltimestamp().isBefore(timestamp))
+                        /* if clockout was before the timestamp reset the loop */
+                        else if (clockedIn == true && (p.getPunchType() == EventType.CLOCK_OUT || p.getPunchType() == EventType.TIME_OUT) && p.getOriginaltimestamp().isBefore(timestamp))
                         {
-                            /* Else set clockedIn to false and look for another pair */
-                        
-                            CI = false;
+                            /* Set clockedIn to false and look for another pair */
+                            clockedIn = false;
+                            
                         }
                         
-                        
                     }
-
+                    
+                    /* Add the employee information to the JsonObject */
                     employees.put("employeetype", employeeTypeString);
                     employees.put("firstname", rs.getString("firstname"));
                     employees.put("badgeid", rs.getString("badgeid"));
                     employees.put("shift", shiftString);
                     employees.put("lastname", rs.getString("lastname"));
                     employees.put("status", inOrOut);
-
-                    //if (clockedIn && isFullTime == true)
+                    
+                    /* Check if employee meets In or Out requirements and assign them to the right array */
                     if (wasClockedIn && isFullTime) 
                     {
-                       //add to fullTimeCI array
-                       fullTimeCI.add(employees);
+                       fullTimeclockedIn.add(employees);
                     }
                     else if (!wasClockedIn && isFullTime)
                     {
-                        //add to fullTimeCI array
                        fullTimeCO.add(employees);
                     }
                     else if (wasClockedIn && !isFullTime)
                     {
-                        tempCI.add(employees);
+                        tempclockedIn.add(employees);
                     }
                     else if (!wasClockedIn && !isFullTime)
                     {
@@ -309,14 +308,13 @@ public class ReportDAO {
                     
                 }
                                 
-                //append list together in correct order
-                jsonData.addAll(fullTimeCI);
-                jsonData.addAll(tempCI);
+                /* append list together in correct order */
+                jsonData.addAll(fullTimeclockedIn);
+                jsonData.addAll(tempclockedIn);
                 jsonData.addAll(fullTimeCO);
                 jsonData.addAll(tempCO);
                 
             }
-            
             
         }
         catch (Exception e)
@@ -324,10 +322,11 @@ public class ReportDAO {
             e.printStackTrace();
         }
         
-        //return final result
+        /* return final result */
         result = Jsoner.serialize(jsonData);
         
         return result;
+        
     }
     
     public String getAbsenteeismHistory(Integer employeeId) {
