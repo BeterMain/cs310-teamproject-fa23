@@ -1,6 +1,6 @@
 package edu.jsu.mcis.cs310.tas_fa23.dao;
 
-
+import edu.jsu.mcis.cs310.tas_fa23.EmployeeType;
 import com.github.cliftonlabs.json_simple.Jsoner;
 import edu.jsu.mcis.cs310.tas_fa23.Badge;
 import edu.jsu.mcis.cs310.tas_fa23.Department;
@@ -12,12 +12,20 @@ import java.util.HashMap;
 import com.github.cliftonlabs.json_simple.*;
 import edu.jsu.mcis.cs310.tas_fa23.Punch;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
+
 
 public class ReportDAO { 
     
     private final String SINGLE_QUERY = "SELECT * FROM employee WHERE departmentid = ? ORDER BY lastname, firstname ";
     private final String MANY_QUERY = "SELECT * FROM employee ORDER BY lastname, firstname ";
     private final String EMPLOYEETYPE_QUERY = "SELECT * FROM employeetype WHERE id = ?";
+    
+    private final String EMPLOYEETYPE_QUERY2 = "SELECT e.*, et.description AS employeetype, s.description AS shift,"
+            + " b.id AS badgeid, b.description AS name, d.description AS department FROM employee e JOIN employeetype et "
+            + "ON e.employeetypeid = et.id JOIN shift s ON e.shiftid = s.id JOIN badge b ON e.badgeid = b.id JOIN department d "
+            +"ON e.departmentid = d.id WHERE e.departmentid = ? ORDER BY d.description, firstname,lastname, e.middlename";
+    
     private final String EMPLOYEEID_QUERY = "SELECT * FROM employee WHERE id = ?";
     private final String ABSENTEEISMACEND_QUERY = "SELECT * FROM absenteeism WHERE employeeid = ? ORDER BY payperiod";
     private final String ABSENTEEISMDESC_QUERY  = "SELECT * FROM absenteeism WHERE employeeid = ? ORDER BY payperiod desc";
@@ -424,4 +432,154 @@ public class ReportDAO {
         return result;
         
     }
+    public String getHoursSummary(LocalDate date, Integer departmentId, EmployeeType employee) {        
+        
+        ArrayList<HashMap<String, String>> hoursSummary = new ArrayList<>();
+
+        PreparedStatement ps = null;
+        
+        ResultSet rs = null;
+
+        try {
+
+            Connection conn = daoFactory.getConnection();
+
+            if (conn.isValid(0)) {
+                if (departmentId != null) {
+
+                } else {
+
+                }
+                
+                ps = conn.prepareStatement(EMPLOYEETYPE_QUERY);
+                
+                rs = ps.executeQuery();
+
+            }
+
+        } catch (SQLException e) {
+
+            throw new DAOException(e.getMessage());
+
+        } finally {
+
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    throw new DAOException(e.getMessage());
+                }
+            }
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    throw new DAOException(e.getMessage());
+                }
+            }
+
+        }
+
+        return Jsoner.serialize(hoursSummary);
+
+    }
+    public String getEmployeeSummary(Integer departmentId) {
+        
+        ArrayList<HashMap<String, String>> jsonData = new ArrayList<>();
+
+        PreparedStatement ps = null;
+        
+        ResultSet rs = null;
+
+        try {
+
+            Connection conn = daoFactory.getConnection();
+
+            if (conn.isValid(0)) {
+
+                if (departmentId == null) {
+                    
+                    ps = conn.prepareStatement(EMPLOYEETYPE_QUERY);
+                
+                } else {
+                    
+                    ps = conn.prepareStatement(EMPLOYEETYPE_QUERY2);
+                    
+                    ps.setInt(1, departmentId);
+                }
+
+                rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    
+                    HashMap<String, String> employeeData = new HashMap<>();
+                    
+                    String F_name = rs.getString("firstname");
+                    
+                    String M_name = rs.getString("middlename");
+                    
+                    String L_name = rs.getString("lastname");
+                    
+                    String EmployeeType = rs.getString("employeetype");
+                    
+                    String Shift = rs.getString("shift");
+                    
+                    String Department = rs.getString("department");
+                    
+                    LocalDate Active = rs.getDate("active").toLocalDate();
+                    
+                    String Badgeid = rs.getString("badgeid");
+                    
+                    
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+
+                    
+                    employeeData.put("firstname", F_name);
+                    
+                    employeeData.put("middlename", M_name);
+                    
+                    employeeData.put("lastname", L_name);
+                    
+                    employeeData.put("active", Active.format(formatter));
+                    
+                    employeeData.put("badgeid", Badgeid);
+                    
+                    employeeData.put("employeetype", EmployeeType);
+                    
+                    employeeData.put("shift", Shift);
+                    
+                    employeeData.put("department", Department);
+                    
+                    jsonData.add(employeeData);
+                }
+
+            }
+
+        } catch (SQLException e) {
+
+            throw new DAOException(e.getMessage());
+
+        } finally {
+
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    throw new DAOException(e.getMessage());
+                }
+            }
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    throw new DAOException(e.getMessage());
+                }
+            }
+
+        }
+
+        return Jsoner.serialize(jsonData);
+
+    }
+
 }
