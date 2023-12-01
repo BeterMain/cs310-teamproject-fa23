@@ -26,11 +26,10 @@ public class ReportDAO {
             + "ON e.employeetypeid = et.id JOIN shift s ON e.shiftid = s.id JOIN badge b ON e.badgeid = b.id JOIN department d "
             +"ON e.departmentid = d.id WHERE e.departmentid = ? ORDER BY d.description, firstname,lastname, e.middlename";
     
+    private final String SHIFTDESC_QUERY = "SELECT * FROM shift WHERE id = ?";
     private final String EMPLOYEEID_QUERY = "SELECT * FROM employee WHERE id = ?";
     private final String ABSENTEEISMACEND_QUERY = "SELECT * FROM absenteeism WHERE employeeid = ? ORDER BY payperiod";
     private final String ABSENTEEISMDESC_QUERY  = "SELECT * FROM absenteeism WHERE employeeid = ? ORDER BY payperiod desc";
-    private final String SINGLEDEPARTMENT_QUERY = "SELECT * FROM employee WHERE departmentid = ?";
-    private final String ALLEMPLOYEES_QUERY = "SELECT * FROM employee";
     private final DAOFactory daoFactory;
     
     public ReportDAO(DAOFactory daoFactory) {
@@ -152,21 +151,24 @@ public class ReportDAO {
     {
         String result;
         
-        JsonObject employees = new JsonObject();
         JsonArray jsonData = new JsonArray();
         JsonArray fullTimeCI = new JsonArray();
         JsonArray tempCI = new JsonArray();
         JsonArray fullTimeCO = new JsonArray();
         JsonArray tempCO = new JsonArray();
         
-        String employeeTypeString, inOrOut = "Out";
-        Boolean wasClockedIn = false, isFullTime;
+        String employeeTypeString;
+        Boolean CI = false;
         
         PunchDAO punchDAO = daoFactory.getPunchDAO();
         BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
         
         PreparedStatement ps;
-        ResultSet rs;
+        ResultSet rs, rs2 = null;
+        
+        LocalDateTime arrivalTime = null;
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd");
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM");
         
         /* Choose which query to use */
         String query;
@@ -199,6 +201,28 @@ public class ReportDAO {
                 
                 while (rs.next())
                 {
+                    ps = conn.prepareStatement(SHIFTDESC_QUERY);
+                    ps.setInt(1, rs.getInt("shiftid"));
+                    Boolean hasAResult = false;
+                    String shiftString = "";
+                    
+                    hasAResult = ps.execute();
+                    
+                    if (hasAResult)
+                    {
+                        rs2 = ps.executeQuery();
+                    }
+                    
+                    while(rs2.next())
+                    {
+                        shiftString = rs2.getString("description");
+                    }
+                    
+                    Boolean wasClockedIn = false, isFullTime = false;
+                    
+                    JsonObject employees = new JsonObject();
+                    String inOrOut = "Out", dayOfWeek = "";
+                    
                     if (rs.getInt("employeetypeid") == 1)
                     {
                         employeeTypeString = "Full-Time Employee";
@@ -220,33 +244,46 @@ public class ReportDAO {
                     /* Loop through the punch list */
                     for (Punch p : punchList) 
                     {
-                        //if (employee is clocked in)
-                        if (p.getOriginaltimestamp().isBefore(timestamp))
+                        //if (employee is clocked in && was before the timestamp)
+                        if (p.getPunchType() == p.getPunchType().CLOCK_IN && p.getOriginaltimestamp().isBefore(timestamp))
                         {
-                            //assign the wasClockedIn variable as true and assign inOut String as In
-                            wasClockedIn = true;
-                            //also add an arrived timestamp at the beginning for when the clocked in
-                            employees.put("arrived", p.printOriginal());
+                            CI = true;
+                            arrivalTime = p.getOriginaltimestamp();
+                            dayOfWeek = arrivalTime.toLocalDate().getDayOfWeek().toString();
+                            dayOfWeek = dayOfWeek.substring(0, 3);
                         }
-                        
-                        /* If find matching pair */
-                        if (wasClockedIn && p.getOriginaltimestamp().isAfter(timestamp))
+                            
+                        //if has a valid clock in and a clock out punch is done after the timestamp
+                        if (CI == true && p.getPunchType() == p.getPunchType().CLOCK_OUT && p.getOriginaltimestamp().isAfter(timestamp))
                         {
+                            /* If find matching pair */
                             /* Break out the loop */
+                            //assign the wasClockedIn variable as true and assign inOut String as In
+                            //also add an arrived timestamp at the beginning for when the clocked in
+                            employees.put("arrived", dayOfWeek + " " + arrivalTime.toLocalDate().format(monthFormatter)
+                                + "/" + arrivalTime.toLocalDate().format(dayFormatter) + "/" + arrivalTime.toLocalDate().getYear()
+                                + " " + arrivalTime.toLocalTime());
+                            CI = false;
+                            wasClockedIn = true;
+                            inOrOut = "In";
                             break;
                         }
-                        else 
+
+                        //if clockout was before the timestamp reset the loop
+                        else if (CI == true && p.getPunchType() == p.getPunchType().CLOCK_OUT && p.getOriginaltimestamp().isBefore(timestamp))
                         {
                             /* Else set clockedIn to false and look for another pair */
-                            wasClockedIn = false;
+                        
+                            CI = false;
                         }
+                        
                         
                     }
 
                     employees.put("employeetype", employeeTypeString);
                     employees.put("firstname", rs.getString("firstname"));
                     employees.put("badgeid", rs.getString("badgeid"));
-                    employees.put("shift", rs.getInt("shiftid"));
+                    employees.put("shift", shiftString);
                     employees.put("lastname", rs.getString("lastname"));
                     employees.put("status", inOrOut);
 
