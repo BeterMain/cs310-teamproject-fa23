@@ -10,6 +10,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import com.github.cliftonlabs.json_simple.*;
+import edu.jsu.mcis.cs310.tas_fa23.Punch;
 import java.time.*;
 
 public class ReportDAO { 
@@ -20,8 +21,8 @@ public class ReportDAO {
     private final String EMPLOYEEID_QUERY = "SELECT * FROM employee WHERE id = ?";
     private final String ABSENTEEISMACEND_QUERY = "SELECT * FROM absenteeism WHERE employeeid = ? ORDER BY payperiod";
     private final String ABSENTEEISMDESC_QUERY  = "SELECT * FROM absenteeism WHERE employeeid = ? ORDER BY payperiod desc";
-    private final String SINGLEDEPARTMENT_QUERY = "Select * from employee where departmentid = ?";
-    private final String ALLEMPLOYEES_QUERY = "Select * from employee";
+    private final String SINGLEDEPARTMENT_QUERY = "SELECT * FROM employee WHERE departmentid = ?";
+    private final String ALLEMPLOYEES_QUERY = "SELECT * FROM employee";
     private final DAOFactory daoFactory;
     
     public ReportDAO(DAOFactory daoFactory) {
@@ -49,7 +50,7 @@ public class ReportDAO {
         
         PreparedStatement ps = null;
         ResultSet rs = null;
-        ResultSet rs2 = null;
+        ResultSet rs2;
         
         
         try {
@@ -139,28 +140,54 @@ public class ReportDAO {
         return result;
     }
     
-    public String getWhosInWhosOut(LocalDateTime timeStamp, Integer departmentID)
+    public String getWhosInWhosOut(LocalDateTime timestamp, Integer departmentID)
     {
-        String result = null;
+        String result;
         
         JsonObject employees = new JsonObject();
-        JsonArray FullTimeCI = new JsonArray();
-        JsonArray TempCI = new JsonArray();
-        JsonArray FullTimeCO = new JsonArray();
-        JsonArray TempCO = new JsonArray();
+        JsonArray jsonData = new JsonArray();
+        JsonArray fullTimeCI = new JsonArray();
+        JsonArray tempCI = new JsonArray();
+        JsonArray fullTimeCO = new JsonArray();
+        JsonArray tempCO = new JsonArray();
         
-        String employeeTypeString = "", inOrOut = "";
-        Integer employeeTypeID, shiftID;
-        Boolean wasClockedIn = false, isFullTime = false;
+        String employeeTypeString, inOrOut = "Out";
+        Boolean wasClockedIn = false, isFullTime;
         
-        Connection conn = daoFactory.getConnection();
+        PunchDAO punchDAO = daoFactory.getPunchDAO();
+        BadgeDAO badgeDAO = daoFactory.getBadgeDAO();
         
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        
+        /* Choose which query to use */
+        String query;
+        
+        if (departmentID == null) {
+            query = MANY_QUERY;
+        }
+        else {
+            query = SINGLE_QUERY;
+        }
+        
         try {
+            
+            Connection conn = daoFactory.getConnection();
+            
+           /* Run employee Table Query */
             if (departmentID == null) {
-                ps = conn.prepareStatement(ALLEMPLOYEES_QUERY);
-                rs = ps.executeQuery();
+                ps = conn.prepareStatement(query);
+            }
+            else {
+                ps = conn.prepareStatement(query);
+                ps.setInt(1, departmentID);
+            }
+            
+            boolean hasResults = ps.execute();
+            
+            if (hasResults) 
+            {
+                rs = ps.getResultSet();
                 
                 while (rs.next())
                 {
@@ -175,71 +202,77 @@ public class ReportDAO {
                         isFullTime = false;
                     }
                     
-                    //if (employee is clocked in)
-                    //assign the wasClockedIn variable as true and assign inOut String as In
-                    //also add an arrived timestamp at the beginning for when the clocked in
+                    /* TODO: Fix logic with calulating status for employee */
                     
-                    //else
-                    //assign the wasClockedIn variable as false and assign inOut String as Out
+                    /* Create a variables for getting punch list */
+                    Badge badge = badgeDAO.find(rs.getString("badgeid"));
                     
+                    ArrayList<Punch> punchList = punchDAO.list(badge, timestamp.toLocalDate());
+                    
+                    /* Loop through the punch list */
+                    for (Punch p : punchList) 
+                    {
+                        //if (employee is clocked in)
+                        if (p.getOriginaltimestamp().isBefore(timestamp))
+                        {
+                            //assign the wasClockedIn variable as true and assign inOut String as In
+                            wasClockedIn = true;
+                            //also add an arrived timestamp at the beginning for when the clocked in
+                            employees.put("arrived", p.printOriginal());
+                        }
+                        
+                        /* If find matching pair */
+                        if (wasClockedIn && p.getOriginaltimestamp().isAfter(timestamp))
+                        {
+                            /* Break out the loop */
+                            break;
+                        }
+                        else 
+                        {
+                            /* Else set clockedIn to false and look for another pair */
+                            wasClockedIn = false;
+                        }
+                        
+                    }
+
                     employees.put("employeetype", employeeTypeString);
                     employees.put("firstname", rs.getString("firstname"));
                     employees.put("badgeid", rs.getString("badgeid"));
                     employees.put("shift", rs.getInt("shiftid"));
                     employees.put("lastname", rs.getString("lastname"));
                     employees.put("status", inOrOut);
-                    
+
                     //if (clockedIn && isFullTime == true)
-                    //add to FullTimeCI array
+                    if (wasClockedIn && isFullTime) 
+                    {
+                       //add to fullTimeCI array
+                       fullTimeCI.add(employees);
+                    }
+                    else if (!wasClockedIn && isFullTime)
+                    {
+                        //add to fullTimeCI array
+                       fullTimeCO.add(employees);
+                    }
+                    else if (wasClockedIn && !isFullTime)
+                    {
+                        tempCI.add(employees);
+                    }
+                    else if (!wasClockedIn && !isFullTime)
+                    {
+                        tempCO.add(employees);
+                    }
                     
-                    //so on so forth for all 4 conditions
                 }
                                 
                 //append list together in correct order
+                jsonData.addAll(fullTimeCI);
+                jsonData.addAll(tempCI);
+                jsonData.addAll(fullTimeCO);
+                jsonData.addAll(tempCO);
+                
             }
             
-            else 
-            {
-                ps = conn.prepareStatement(SINGLEDEPARTMENT_QUERY);
-                ps.setInt(1, departmentID);
-                
-                rs = ps.executeQuery();
-                
-                while (rs.next())
-                {
-                    if (rs.getInt("departmentid") == 1)
-                    {
-                        employeeTypeString = "Full-Time Employee";
-                        isFullTime = true;
-                    }
-                    else
-                    {
-                        employeeTypeString = "Temporary Employee";
-                        isFullTime = false;
-                    }
-                    
-                    //if (employee is clocked in)
-                    //assign the wasClockedIn variable as true and assign inOut String as In
-                    //also add an arrived timestamp at the beginning for when the clocked in
-                    
-                    //else
-                    //assign the wasClockedIn variable as false and assign inOut String as Out
-                    
-                    employees.put("employeetype", employeeTypeString);
-                    employees.put("firstname", rs.getString("firstname"));
-                    employees.put("badgeid", rs.getString("badgeid"));
-                    employees.put("shift", rs.getInt("shiftid"));
-                    employees.put("lastname", rs.getString("lastname"));
-                    employees.put("status", inOrOut);
-                    
-                    //if (clockedIn && isFullTime == true)
-                    //add to FullTimeCI array
-                    
-                    //so on so forth for all 4 conditions
-                    
-                    //append list together in correct order
-                }
-            }
+            
         }
         catch (Exception e)
         {
@@ -247,6 +280,8 @@ public class ReportDAO {
         }
         
         //return final result
+        result = Jsoner.serialize(jsonData);
+        
         return result;
     }
     
@@ -317,8 +352,8 @@ public class ReportDAO {
                     
                         /* Calculate Average for each payperiod */
                         percentage += rs.getDouble("percentage");
-                        lifetime = BigDecimal.valueOf(percentage / count);
-                        lifetime = lifetime.setScale(2, RoundingMode.HALF_UP);
+                        lifetime = BigDecimal.valueOf(percentage / count).setScale(3, RoundingMode.HALF_EVEN); // TODO: Something wrong with this
+                        lifetime = lifetime.setScale(2, RoundingMode.HALF_EVEN); // TODO: Something wrong with this
                         lifetimeList.add(lifetime);
                         count++;
                         
@@ -336,6 +371,7 @@ public class ReportDAO {
                     
                     rs = ps.getResultSet();
                     
+                    /* Create count variable for searching through lifetimeList */
                     int count = lifetimeList.size()-1;
                     
                     while (rs.next()) {
